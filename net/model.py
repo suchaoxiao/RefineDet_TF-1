@@ -140,7 +140,7 @@ class Refine_det(object):
     def forward(self, end_points, ground_truths):
         gtlabels, gtboxes = ground_truths
         from_layers = []
-        print(end_points)
+        print(end_points.keys())
         for name in self.ARM_LAYERS:
             from_layers.append(end_points[name])
         # get output of ARM and ODM
