@@ -68,7 +68,7 @@ class Refine_det(object):
         self.FEATURENUM_BACK = [64, 64, 128]
         self.NUM_BLOCKS_FORW = [2, 2, 3, 3]
         self.NUM_BLOCKS_BACK = [3, 3]
-        self.ARM_LAYERS = ['block3_1', 'block3','block4', 'block5_1' 'block5', 'block6_1','block6']
+        self.ARM_LAYERS = ['block3_1', 'block3','block4', 'block5_1', 'block5', 'block6_1','block6']
         self.KEEP_PROB = 0.5
         self.scope = 'refine_det_resnet'
         self.reuse = None
