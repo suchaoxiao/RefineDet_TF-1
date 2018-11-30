@@ -63,6 +63,7 @@ class Refine_det(object):
         self.config = config
         self.ARM_LAYERSPOOL_STRIDE_SIZE = 2
         self.POOL_KERNEL_SIZE = 2
+        self.POOL_STRIDE_SIZE = 2
         self.FEATURENUM_FORW = [24, 32, 64, 64, 64]
         self.FEATURENUM_BACK = [64, 64, 128]
         self.NUM_BLOCKS_FORW = [2, 2, 3, 3]
