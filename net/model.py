@@ -74,11 +74,8 @@ class Refine_det(object):
         self.reuse = None
         self.config['num_classes'] = num_classes
         
-    def model_func(self, inputI, is_training, input_data_format='channels_last'):
+    def model_func(self, image, is_training, input_data_format='channels_last'):
 
-        feature = list(inputI)
-        image = feature[0]  # image
-        coord = feature[1]  # coord
         end_points = {}
         with tf.variable_scope(self.scope, 'ssd_160_resnet', [image], reuse=self.reuse):
             # block 1
