@@ -243,10 +243,11 @@ def _tower_fn(is_training, weight_decay, feature, label, data_format):
     '''
     used for training of each gpu
     '''   
+    image, bbox = feature
     net = model.get_model()  # unused config, getpbb
-    end_points = net.model_func(feature, is_training=is_training,
+    end_points = net.model_func(image, is_training=is_training,
                             input_data_format='channels_last')
-    tower_loss = net.forward(end_points, label)
+    tower_loss = net.forward(end_points, [bbox,label])
 
     model_params = tf.trainable_variables()
     reg_loss = weight_decay * tf.add_n( # regularization
@@ -515,5 +516,5 @@ if __name__ == '__main__':
         raise ValueError('--train-batch-size must be multiple of --num-gpus.')
     if args.num_gpus != 0 and args.eval_batch_size % args.num_gpus != 0:
         raise ValueError('--eval-batch-size must be multiple of --num-gpus.')
-    print(vars(args))
+    # print(vars(args))
     main(**vars(args))
