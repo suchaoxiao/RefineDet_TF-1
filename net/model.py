@@ -96,7 +96,7 @@ class Refine_det(object):
             end_points['block3_1'] = net
             net = res_unit(net, 32, 32, stride=1, is_training=is_training, name="top_down_1_1")
             end_points['block3_2'] = net
-            net = tf.layers.max_pooling3d(
+            net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block3'] = net  # [64, 64, 64, 32]
 
@@ -105,7 +105,7 @@ class Refine_det(object):
             end_points['block4_1'] = net
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_2_1")
             end_points['block4_2'] = net
-            net = tf.layers.max_pooling3d(
+            net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block4'] = net  # [32, 32, 32, 64]
 
@@ -115,7 +115,7 @@ class Refine_det(object):
             end_points['block5_1'] = net
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_3_2")
             end_points['block5_2'] = net
-            net = tf.layers.max_pooling3d(
+            net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block5'] = net  # [16, 16, 16, 64]
 
@@ -125,7 +125,7 @@ class Refine_det(object):
             end_points['block6_1'] = net
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_4_2")
             end_points['block6_2'] = net
-            net = tf.layers.max_pooling3d(
+            net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block6'] = net  # [8, 8, 8, 64]
 
