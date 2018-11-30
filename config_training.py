@@ -5,7 +5,7 @@ configuration = {
     'num_gpus':1,
 
     'num_examples_per_epoch_train':4000,
-    'num_examples_per_epoch_eval':1000,
+    'num_examples_per_epoch_eval':1024,
     'num_epoches':10000,
     'train_steps':200000,
     'batch_size':32,
