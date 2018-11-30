@@ -511,5 +511,5 @@ if __name__ == '__main__':
         raise ValueError('--train-batch-size must be multiple of --num-gpus.')
     if args.num_gpus != 0 and args.eval_batch_size % args.num_gpus != 0:
         raise ValueError('--eval-batch-size must be multiple of --num-gpus.')
-
+    print(vars(args))
     main(**vars(args))
