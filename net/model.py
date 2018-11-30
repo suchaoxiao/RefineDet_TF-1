@@ -141,6 +141,7 @@ class Refine_det(object):
         gtlabels, gtboxes = ground_truths
         from_layers = []
         print(end_points.keys())
+        print(self.ARM_LAYERS)
         for name in self.ARM_LAYERS:
             from_layers.append(end_points[name])
         # get output of ARM and ODM
