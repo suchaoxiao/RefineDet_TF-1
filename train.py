@@ -29,7 +29,7 @@ from preprocess import preprocessing_factory
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 tf.logging.set_verbosity(tf.logging.INFO)
-dataset_dir = '/User/hufangquan/code/SSD-Tensorflow-master/data/'
+dataset_dir = configuration['dataset_dir']
 
 def get_model_fn(num_gpus, variable_strategy, num_workers):
     """Returns a function that will build the resnet model."""
