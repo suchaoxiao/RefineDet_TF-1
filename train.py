@@ -243,7 +243,7 @@ def _tower_fn(is_training, weight_decay, feature, label, data_format):
     '''
     used for training of each gpu
     '''   
-    _, net, loss, _ = model.get_model()  # unused config, getpbb
+    net = model.get_model()  # unused config, getpbb
     end_points = net.model_func(feature, is_training=is_training,
                             input_data_format='channels_last')
     tower_loss = net.forward(end_points, label)
