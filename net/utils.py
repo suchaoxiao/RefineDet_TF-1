@@ -81,7 +81,7 @@ def deconv3d(input, output_chn, use_bias=True, kernel_size=2, name='deconv'):
                                       kernel_regularizer=slim.l2_regularizer(0.0005), use_bias=use_bias, name=name)
     return conv
 
-def conv_unit(input, output_chn, kernel_size, stride, bn_epsilon, is_training, name):
+def conv_unit(input, output_chn, kernel_size, stride, bn_epsilon=1e-3, is_training=True, name=None):
     with tf.variable_scope(name):
         conv = conv2d(input, output_chn, kernel_size, stride)
         # with tf.device("/cpu:0"):
@@ -99,7 +99,7 @@ def conv3d_unit(input, output_chn, kernel_size, stride, bn_epsilon, is_training,
         relu = tf.nn.relu(bn, name='relu')
     return relu
 
-def deconv_unit(input, output_chn, bn_epsilon, is_training, name):
+def deconv_unit(input, output_chn, bn_epsilon=1e-3, is_training=True, name=None):
     with tf.variable_scope(name):
         conv = deconv2d(input, output_chn)
         # with tf.device("/cpu:0"):
@@ -108,7 +108,7 @@ def deconv_unit(input, output_chn, bn_epsilon, is_training, name):
         relu = tf.nn.relu(bn, name='relu')
     return relu
 
-def deconv_unit(input, output_chn, bn_epsilon, is_training, name):
+def deconv3d_unit(input, output_chn, bn_epsilon, is_training, name):
     with tf.variable_scope(name):
         conv = deconv3d(input, output_chn)
         # with tf.device("/cpu:0"):
