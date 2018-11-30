@@ -29,7 +29,6 @@ from preprocess import preprocessing_factory
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 tf.logging.set_verbosity(tf.logging.INFO)
-dataset_dir = configuration['dataset_dir']
 
 def get_model_fn(num_gpus, variable_strategy, num_workers):
     """Returns a function that will build the resnet model."""
@@ -363,7 +362,7 @@ def get_experiment_fn(data_dir,
     return _experiment_fn
 
 
-def main(job_dir, data_dir, num_gpus, variable_strategy,
+def main(model_dir, data_dir, num_gpus, variable_strategy,
          use_distortion_for_training, log_device_placement, num_intra_threads,
          **hparams):
         # The env variable is on deprecation path, default is set to off.
@@ -378,7 +377,7 @@ def main(job_dir, data_dir, num_gpus, variable_strategy,
         gpu_options=tf.GPUOptions(force_gpu_compatible=True))
 
     config = utils_func.RunConfig(
-        session_config=sess_config, model_dir=job_dir)
+        session_config=sess_config, model_dir=model_dir)
     tf.contrib.learn.learn_runner.run(
         get_experiment_fn(data_dir, num_gpus, variable_strategy,
                           use_distortion_for_training),
@@ -398,6 +397,11 @@ if __name__ == '__main__':
         type=str,
         default=configuration['model_path'],
         help='The directory where the model will be stored.')
+    parser.add_argument(
+        '--data-dir',
+        type=str,
+        default=configuration['data_dir'],
+        help='dataset directory')
     parser.add_argument(
         '--variable-strategy',
         choices=['CPU', 'GPU'],
