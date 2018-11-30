@@ -279,7 +279,7 @@ def input_fn(data_dir,
         # use_distortion = subset == 'train' and use_distortion_for_training
         # to be reshaped, first two elements are float64
         dataset_name = 'pascalvoc_2007'
-        dataset = dataset_factory.get_dataset(dataset_name, subset, dataset_dir,
+        dataset = dataset_factory.get_dataset(dataset_name, subset, data_dir,
                                 batch_size, configuration['num_epoches'])
         
         
