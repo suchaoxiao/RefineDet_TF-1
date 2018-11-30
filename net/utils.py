@@ -50,7 +50,7 @@ def cummax(x, reverse=False, name=None):
         return cmax
 
 def conv2d(input, output_chn, kernel_size, stride=1, use_bias=True, name='conv'):
-    return tf.layers.conv3d(inputs=input, filters=output_chn, kernel_size=kernel_size, strides=stride,
+    return tf.layers.conv2d(inputs=input, filters=output_chn, kernel_size=kernel_size, strides=stride,
                             padding="same", data_format='channels_last',
                             kernel_initializer=tf.truncated_normal_initializer(
                                 0.0, 0.01),
