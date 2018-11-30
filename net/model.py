@@ -137,26 +137,10 @@ class Refine_det(object):
         #     [1,2,.5,3,1./3], [1,2,.5], [1,2,.5]]
         return end_points
     
-    def arm_anchor_with_encoding(self, from_layers,gtlabels, gtbboxes):
-        '''
-        return:
-            those anchors that matches ground truth boxes using IOU criterion
-            gclasses: indicate which class where each anchor belongs
-            glocations: anchor locations, list of [y,x,w,h] with respect to anchor center
-            gscore: the IOU score of each selected anchor
-        '''
-        encoded_anchor_classes, encoded_anchor_locations, encoded_anchor_scores = \
-                common.bboxes_encode(gtlabels, gtbboxes, anchor_boxes, threshold=0.5) # return lists
-        return encoded_anchor_classes, encoded_anchor_locations, encoded_anchor_scores
-    
-    def odm_anchor_with_encoding(self, end_points, refined_anchors, gtlabels, gtbboxes):
-        encoded_anchor_classes, encoded_anchor_locations, encoded_anchor_scores = \
-                common.bboxes_encode(gtlabels, gtbboxes, refined_anchors)
-        return encoded_anchor_classes, encoded_anchor_locations, encoded_anchor_scores
-
     def forward(self, end_points, ground_truths):
         gtlabels, gtboxes = ground_truths
         from_layers = []
+        print(end_points)
         for name in self.ARM_LAYERS:
             from_layers.append(end_points[name])
         # get output of ARM and ODM
