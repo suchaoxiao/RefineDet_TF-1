@@ -61,6 +61,7 @@ config['blacklist'] = ['868b024d9fa388b7ddab12ec1c06af38',
 class Refine_det(object):
     def __init__(self, num_classes):
         self.config = config
+        self.num_classes = num_classes
         self.ARM_LAYERSPOOL_STRIDE_SIZE = 2
         self.POOL_KERNEL_SIZE = 2
         self.POOL_STRIDE_SIZE = 2
