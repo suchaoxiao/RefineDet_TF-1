@@ -102,7 +102,7 @@ def get_split(split_name, dataset_dir, batch_size, num_epoches, file_pattern,
     tf_filenames = glob.glob(file_pattern)
     dataset = tf.data.TFRecordDataset(tf_filenames)
     parser_fn = functools.partial(_parser_fn,
-                        split_name=split_name, img_shape=(300,300))
+                        split_name=split_name, img_shape=(512,512))
     dataset = dataset.map(parser_fn)
     dataset = dataset.prefetch(batch_size)
     dataset = dataset.repeat(num_epoches)
