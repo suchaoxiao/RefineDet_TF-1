@@ -52,24 +52,24 @@ def deconv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=2, paddi
 
 def tcb_module(conv, deconv, num_filter, level=1):
     deconv = deconv_act_layer(deconv, "tcb{}".format(
-        level), num_filter, use_bn=False, kernel=2, padding="same", strides=[2, 2, 2], data_format='channels_last', act_type=None)
-    conv1 = conv_act_layer(conv, "tcb{}".format(level), num_filter, use_bn=False, kernel=[
-                           3, 3, 3], stride=[1, 1, 1], pad='same', act_type="relu", num=1)
-    conv2 = conv_act_layer(conv1, "tcb{}".format(level), num_filter, use_bn=False, kernel=[
-                           3, 3, 3], stride=[1, 1, 1], pad='same', act_type=None, num=2)
+        level), num_filter, use_bn=False, kernel=2, padding="same", strides=2, data_format='channels_last', act_type=None)
+    conv1 = conv_act_layer(conv, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
+                             stride=1, pad='same', act_type="relu", num=1)
+    conv2 = conv_act_layer(conv1, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
+                             stride=1, pad='same', act_type=None, num=2)
     eltwise_sum = tf.add(deconv, conv2)
     relu = tf.nn.relu(eltwise_sum, name="tcb{}_elt_relu".format(level))
-    conv3 = conv_act_layer(relu, "tcb{}".format(level), num_filter, use_bn=False, kernel=[
-                           3, 3, 3], stride=[1, 1, 1], pad='same', act_type="relu", num=3)
+    conv3 = conv_act_layer(relu, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
+                             stride=1, pad='same', act_type="relu", num=3)
     return conv3
 
 def tcb_module_last(conv, num_filter, level=1):
-    conv1 = conv_act_layer(conv, "tcb{}".format(level), num_filter, use_bn=False, kernel=[
-                           3, 3, 3], stride=[1, 1, 1], pad='same', act_type="relu", num=1)
-    conv2 = conv_act_layer(conv1, "tcb{}".format(level), num_filter, use_bn=False, kernel=[
-                           3, 3, 3], stride=[1, 1, 1], pad='same', act_type="relu", num=2)
-    conv3 = conv_act_layer(conv2, "tcb{}".format(level), num_filter, use_bn=False, kernel=[
-                           3, 3, 3], stride=[1, 1, 1], pad='same', act_type="relu", num=3)
+    conv1 = conv_act_layer(conv, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
+                                 stride=1, pad='same', act_type="relu", num=1)
+    conv2 = conv_act_layer(conv1, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
+                                 stride=1, pad='same', act_type="relu", num=2)
+    conv3 = conv_act_layer(conv2, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
+                                 stride=1, pad='same', act_type="relu", num=3)
     return conv3
 
 def construct_refinedet(from_layers):
