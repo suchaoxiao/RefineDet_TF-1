@@ -157,7 +157,7 @@ class Refine_det(object):
         arm_loc, arm_cls, odm_loc, odm_cls = multibox_layer(config, from_layers, \
             num_classes=self.num_classes, clip=False)
 
-        anchor_boxes = common.get_anchors(config, from_layers, dtype=np.float64)
+        anchor_boxes = common.get_anchors(config, from_layers)
         arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
                                                     anchor_boxes, self.config, anchor_for='arm')
         refined_anchors = common.refine_anchors(anchor_boxes, arm_loc)
