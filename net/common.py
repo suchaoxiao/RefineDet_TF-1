@@ -205,17 +205,17 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
 
         # create location prediction layer
         num_loc_pred = num_anchors * 6
-        loc_pred = tf.layers.conv3d(from_layer, num_loc_pred, kernel_size=[3, 3, 3], strides=[
-            1, 1, 1], padding="same", data_format='channels_last', name="{}_loc_conv".format(from_name).replace(':','_'))
-        loc_pred = tf.transpose(loc_pred, perm=(0, 2, 3, 4, 1))
+        loc_pred = tf.layers.conv2d(from_layer, num_loc_pred, kernel_size=3, strides=1,
+                 padding="same", data_format='channels_last', name="{}_loc_conv".format(from_name).replace(':','_'))
+        loc_pred = tf.transpose(loc_pred, perm=(0, 2, 3, 1))
         loc_pred = tf.layers.flatten(loc_pred)
         loc_layers.append(loc_pred)
 
         # create class prediction layer
         num_cls_pred = num_anchors * num_classes
-        cls_pred = tf.layers.conv3d(from_layer, num_cls_pred, kernel_size=[3, 3, 3], strides=[
-            1, 1, 1], padding="same", data_format='channels_last', name="{}_cls_conv".format(from_name))
-        cls_pred = tf.transpose(cls_pred, perm=(0, 2, 3, 4, 1))
+        cls_pred = tf.layers.conv2d(from_layer, num_cls_pred, kernel_size=3, strides=1,
+                 padding="same", data_format='channels_last', name="{}_cls_conv".format(from_name).replace(':','_'))
+        cls_pred = tf.transpose(cls_pred, perm=(0, 2, 3, 1))
         cls_pred = tf.layers.flatten(cls_pred)
         cls_layers.append(cls_pred)
     
