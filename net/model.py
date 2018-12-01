@@ -56,9 +56,9 @@ config['augtype'] = {'flip': True, 'swap': False,
                      'scale': True, 'rotate': False}
 config['blacklist'] = ['868b024d9fa388b7ddab12ec1c06af38',
                        '990fbe3f0a1b53878669967b9afd1441', 'adc3bbc63d40f8761c59be10f1e504c3']
-import logging
-logging.basicConfig(filename='LOG/'+__name__+'.log',format='[%(asctime)s-%(filename)s-%(levelname)s:%(message)s]', 
-                level=logging.INFO,filemode='a',datefmt='%Y-%m-%d %I:%M:%S %p')
+# import logging
+# logging.basicConfig(filename='LOG/'+__name__+'.log',format='[%(asctime)s-%(filename)s-%(levelname)s:%(message)s]', 
+#                 level=print,filemode='a',datefmt='%Y-%m-%d %I:%M:%S %p')
 
 class Refine_det(object):
     def __init__(self, num_classes):
@@ -76,7 +76,8 @@ class Refine_det(object):
         self.scope = 'refine_det_resnet'
         self.reuse = None
         self.config['num_classes'] = num_classes
-        
+        self.config['no_annotation_label'] = 21
+
     def model_func(self, image, is_training, input_data_format='channels_last'):
 
         end_points = {}
@@ -85,13 +86,13 @@ class Refine_det(object):
             net = conv_unit(input=image, output_chn=24, kernel_size=3, stride=1,
                             is_training=is_training, name='convpre_1')
             end_points['block1'] = net  # [512,512,24]
-            logging.info('block1---',net.get_shape().as_list())
+            print('block1---',net.get_shape().as_list())
 
             # block 2
             net = conv_unit(input=net, output_chn=24, kernel_size=3, stride=1,
                             is_training=is_training, name='convpre_2')
             end_points['block2'] = net  # [512,512, 24]
-            logging.info('block2---',net.get_shape().as_list())
+            print('block2---',net.get_shape().as_list())
 
             # block 3
             net = res_unit(net, 24, 32, stride=1, is_training=is_training, name="top_down_1_0")
@@ -101,7 +102,7 @@ class Refine_det(object):
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block3'] = net  # [256,256, 32]
-            logging.info('block3---',net.get_shape().as_list())
+            print('block3---',net.get_shape().as_list())
 
             # block 4
             net = res_unit(net, 32, 64, stride=1, is_training=is_training, name="top_down_2_0")
@@ -111,7 +112,7 @@ class Refine_det(object):
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block4'] = net  # [128,128, 64]
-            logging.info('block4---',net.get_shape().as_list())
+            print('block4---',net.get_shape().as_list())
 
             # block 5
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_3_0")
@@ -122,7 +123,7 @@ class Refine_det(object):
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block5'] = net  # [32,32, 64]
-            logging.info('block5---',net.get_shape().as_list())
+            print('block5---',net.get_shape().as_list())
 
             # block 6
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_4_0")
@@ -133,13 +134,13 @@ class Refine_det(object):
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block6'] = net  # [8, 8, 64]
-            logging.info('block6---',net.get_shape().as_list())
+            print('block6---',net.get_shape().as_list())
 
             # # block 7
             # net = deconv_unit(input=net, output_chn=64,
             #                   is_training=is_training, name="bottom_up_1_0")
             # end_points['block7'] = net  # [16, 16, 16, 64]
-            # logging.info('block7---',net.get_shape().as_list())
+            # print('block7---',net.get_shape().as_list())
         
         # sizes = [[.07, .1025], [.15,.2121], [.3, .3674], [.45, .5196], [.6, .6708], \
         #     [.75, .8216], [.9, .9721]]
