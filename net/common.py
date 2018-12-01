@@ -324,7 +324,7 @@ def multibox_layer(config, layers, num_classes, clip=False):
     assert len(ratios) == len(layers), \
         "ratios and from_layers must have same length"
     assert len(sizes) == len(layers), \
-        "sizes and from_layers must have same length but got %d and %d" % (len(sizes),len(layer))
+        "sizes and from_layers must have same length but got %d and %d" % (len(sizes),len(layers))
 
     normalization = config['normalizations']
     if not isinstance(normalization, list):
