@@ -4,7 +4,7 @@ import tensorflow as tf
 from net import bboxes
 
 
-def conv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=[3, 3, 3], stride=[1, 1, 1], pad='valid', data_format='channels_last', act_type="relu", num=1):
+def conv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=3, stride=1, pad='valid', data_format='channels_last', act_type="relu", num=1):
     """
     wrapper for a small Convolution group
 
@@ -40,7 +40,7 @@ def conv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=[3, 3, 3],
         conv = tf.nn.relu(conv, name="{}_{}{}".format(name, act_type, num))
     return conv
 
-def deconv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=2, padding="same", strides=[2, 2, 2], data_format='channels_last',  act_type='relu'):
+def deconv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=2, padding="same", strides=2, data_format='channels_last',  act_type='relu'):
     deconv = tf.layers.conv2d_transpose(inputs=from_layer, filters=num_filter, kernel_size=kernel, strides=strides,
                                         padding=padding, data_format=data_format, name="{}_deconv".format(name))
     if use_bn:
