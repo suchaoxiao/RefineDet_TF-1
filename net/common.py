@@ -402,7 +402,6 @@ def ssd_anchor_match_layer(gtlabels,
                             (0 indicate the background and 1-num_class indicate the specific class)
             target_locations: [w,h,]
     """
-    gtboxes = tf.cast(gtboxes, anchors_layer.dtype)
     # Anchors coordinates and volume.
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
@@ -413,6 +412,7 @@ def ssd_anchor_match_layer(gtlabels,
         wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
         href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
+    gtboxes = tf.cast(gtboxes, xref.dtype)
     ymin = yref - href / 2.
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
