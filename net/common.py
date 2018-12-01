@@ -402,7 +402,7 @@ def ssd_anchor_match_layer(gtlabels,
                             (0 indicate the background and 1-num_class indicate the specific class)
             target_locations: [w,h,]
     """
-    bboxes = tf.cast(bboxes, anchors_layer.dtype)
+    gtboxes = tf.cast(gtboxes, anchors_layer.dtype)
     # Anchors coordinates and volume.
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
