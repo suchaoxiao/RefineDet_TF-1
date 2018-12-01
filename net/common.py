@@ -339,9 +339,9 @@ def multibox_layer(config, layers, num_classes, clip=False):
         # normalize
         if normalization[k] > 0:
             from_layer = tf.nn.l2_normalize(from_layer, axis=0,
-                                            name="{}_norm".format(from_name))
+                                            name="{}_norm".format(from_name).replace(':','_'))
             scale = tf.Variable(tf.constant(normalization[k], shape=(
-                1, num_channels[k], 1, 1)), name="{}_scale".format(from_name))
+                1, num_channels[k], 1, 1)), name="{}_scale".format(from_name).replace(':','_'))
             from_layer = tf.multiply(scale, from_layer)
             layers[k] = from_layer
 
