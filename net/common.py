@@ -370,7 +370,7 @@ def anchor_match(labels, bboxes, anchors, config, threshold=0.5, scope=None):
             labels, bboxes, anchors,
             num_classes,
             no_annotation_label,
-            anchor_scaling,
+            anchor_scaling=anchor_scaling,
             ignore_threshold=0.5,
             scope=scope)
 
@@ -535,7 +535,7 @@ def ssd_anchor_match(labels,
                          num_classes,
                          no_annotation_label,
                          ignore_threshold=0.5,
-                         prior_scaling=[0.1, 0.1, 0.2, 0.2],
+                         anchor_scaling=[0.1, 0.1, 0.2, 0.2],
                          dtype=tf.float32,
                          scope='ssd_anchor_match'):
     """Encode groundtruth labels and bounding boxes using SSD net anchors.
@@ -562,7 +562,7 @@ def ssd_anchor_match(labels,
                     ssd_anchor_match_layer(labels, bboxes, anchors_layer,
                                                num_classes, no_annotation_label,
                                                ignore_threshold,
-                                               prior_scaling, dtype)
+                                               anchor_scaling, dtype)
                 target_labels.append(t_labels)
                 target_localizations.append(t_loc)
                 target_scores.append(t_scores)
