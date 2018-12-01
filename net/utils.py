@@ -134,7 +134,7 @@ def res_unit(inputI, n_in, n_out, bn_epsilon=1e-3, stride=1, is_training=True, n
         out = conv_unit(input=inputI, output_chn=n_out, kernel_size=3,
                            stride=1, is_training=is_training, name="pr_cbr_out")
         out = conv2d(input=out, output_chn=n_out,
-                     kernel_size=3, stride=1, name="pr_conv_out")
+                     kernel_size=3, stride=stride, name="pr_conv_out")
         out = tf.layers.batch_normalization(out, epsilon=bn_epsilon,
                                             training=is_training, name="pr_bn_out")
         out += residual
