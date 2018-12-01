@@ -51,6 +51,7 @@ def deconv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=2, paddi
     return deconv
 
 def tcb_module(conv, deconv, num_filter, level=1):
+    print('conv shape', conv.get_shape().as_list(), 'deconv shape', deconv.get_shape().as_list())
     deconv = deconv_act_layer(deconv, "tcb{}".format(
         level), num_filter, use_bn=False, kernel=2, padding="same", strides=2, data_format='channels_last', act_type=None)
     conv1 = conv_act_layer(conv, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
