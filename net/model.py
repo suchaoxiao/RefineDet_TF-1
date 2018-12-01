@@ -56,7 +56,8 @@ config['augtype'] = {'flip': True, 'swap': False,
                      'scale': True, 'rotate': False}
 config['blacklist'] = ['868b024d9fa388b7ddab12ec1c06af38',
                        '990fbe3f0a1b53878669967b9afd1441', 'adc3bbc63d40f8761c59be10f1e504c3']
-
+import logging
+logging.basicConfig('debug.log')
 
 class Refine_det(object):
     def __init__(self, num_classes):
@@ -82,14 +83,14 @@ class Refine_det(object):
             # block 1
             net = conv_unit(input=image, output_chn=24, kernel_size=3, stride=1,
                             is_training=is_training, name='convpre_1')
-            end_points['block1'] = net
-            print('block1---',net.get_shape().as_list())
+            end_points['block1'] = net  # [512,512,24]
+            logging.debug('block1---',net.get_shape().as_list())
 
             # block 2
             net = conv_unit(input=net, output_chn=24, kernel_size=3, stride=1,
                             is_training=is_training, name='convpre_2')
-            end_points['block2'] = net  # [128, 128, 128, 24]
-            print('block2---',net.get_shape().as_list())
+            end_points['block2'] = net  # [512,512, 24]
+            logging.debug('block2---',net.get_shape().as_list())
 
             # block 3
             net = res_unit(net, 24, 32, stride=1, is_training=is_training, name="top_down_1_0")
@@ -98,8 +99,8 @@ class Refine_det(object):
             end_points['block3_2'] = net
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
-            end_points['block3'] = net  # [64, 64, 64, 32]
-            print('block3---',net.get_shape().as_list())
+            end_points['block3'] = net  # [256,256, 32]
+            logging.debug('block3---',net.get_shape().as_list())
 
             # block 4
             net = res_unit(net, 32, 64, stride=1, is_training=is_training, name="top_down_2_0")
@@ -108,8 +109,8 @@ class Refine_det(object):
             end_points['block4_2'] = net
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
-            end_points['block4'] = net  # [32, 32, 32, 64]
-            print('block4---',net.get_shape().as_list())
+            end_points['block4'] = net  # [128,128, 64]
+            logging.debug('block4---',net.get_shape().as_list())
 
             # block 5
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_3_0")
@@ -119,8 +120,8 @@ class Refine_det(object):
             end_points['block5_2'] = net
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
-            end_points['block5'] = net  # [16, 16, 16, 64]
-            print('block5---',net.get_shape().as_list())
+            end_points['block5'] = net  # [64,64, 64]
+            logging.debug('block5---',net.get_shape().as_list())
 
             # block 6
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_4_0")
@@ -130,14 +131,14 @@ class Refine_det(object):
             end_points['block6_2'] = net
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
-            end_points['block6'] = net  # [8, 8, 8, 64]
-            print('block6---',net.get_shape().as_list())
+            end_points['block6'] = net  # [32, 32, 64]
+            logging.debug('block6---',net.get_shape().as_list())
 
-            # block 7
-            net = deconv_unit(input=net, output_chn=64,
-                              is_training=is_training, name="bottom_up_1_0")
-            end_points['block7'] = net  # [16, 16, 16, 64]
-            print('block7---',net.get_shape().as_list())
+            # # block 7
+            # net = deconv_unit(input=net, output_chn=64,
+            #                   is_training=is_training, name="bottom_up_1_0")
+            # end_points['block7'] = net  # [16, 16, 16, 64]
+            # logging.debug('block7---',net.get_shape().as_list())
         
         # sizes = [[.07, .1025], [.15,.2121], [.3, .3674], [.45, .5196], [.6, .6708], \
         #     [.75, .8216], [.9, .9721]]
@@ -148,7 +149,7 @@ class Refine_det(object):
     def forward(self, end_points, ground_truths):
         gtlabels, gtboxes = ground_truths
         from_layers = []
-        print(end_points.keys())
+        logging.debug(end_points.keys())
         for name in self.ARM_LAYERS:
             from_layers.append(end_points[name])
         # get output of ARM and ODM
