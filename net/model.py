@@ -57,7 +57,7 @@ config['augtype'] = {'flip': True, 'swap': False,
 config['blacklist'] = ['868b024d9fa388b7ddab12ec1c06af38',
                        '990fbe3f0a1b53878669967b9afd1441', 'adc3bbc63d40f8761c59be10f1e504c3']
 import logging
-logging.basicConfig('debug.log')
+logging.basicConfig(filename='../LOG/'+__name__+'.log',format='[%(asctime)s-%(filename)s-%(levelname)s:%(message)s]', level = logging.DEBUG,filemode='a',datefmt='%Y-%m-%d %I:%M:%S %p')
 
 class Refine_det(object):
     def __init__(self, num_classes):
