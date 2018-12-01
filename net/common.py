@@ -219,7 +219,7 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         cls_pred = tf.layers.flatten(cls_pred)
         cls_layers.append(cls_pred)
     
-    loc_preds = tf.concat(*loc_layers,
+    loc_preds = tf.concat(loc_layers,
                           axis=1, name="{}_multibox_loc".format(mode))
     cls_preds = tf.concat(*cls_layers, axis=1)
     cls_preds = tf.reshape(cls_preds, shape=[0, -1, num_classes])
