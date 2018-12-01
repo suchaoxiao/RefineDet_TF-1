@@ -206,7 +206,7 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         # create location prediction layer
         num_loc_pred = num_anchors * 6
         loc_pred = tf.layers.conv3d(from_layer, num_loc_pred, kernel_size=[3, 3, 3], strides=[
-            1, 1, 1], padding="same", data_format='channels_last', name="{}_loc_conv".format(from_name))
+            1, 1, 1], padding="same", data_format='channels_last', name="{}_loc_conv".format(from_name).replace(':','_'))
         loc_pred = tf.transpose(loc_pred, perm=(0, 2, 3, 4, 1))
         loc_pred = tf.layers.flatten(loc_pred)
         loc_layers.append(loc_pred)
