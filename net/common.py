@@ -360,7 +360,7 @@ def multibox_layer(config, layers, num_classes, clip=False):
     return [arm_loc, arm_cls, odm_loc, odm_cls]
 
 # ================================================================================
-def anchor_match(labels, bboxes, anchors, config, threshold=0.5, scope=None):
+def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, scope=None):
         """Encode labels and bounding boxes.
         """
         num_classes = config['num_classes']
@@ -370,6 +370,7 @@ def anchor_match(labels, bboxes, anchors, config, threshold=0.5, scope=None):
             labels, bboxes, anchors,
             num_classes,
             no_annotation_label,
+            anchor_for=anchor_for,
             anchor_scaling=anchor_scaling,
             ignore_threshold=0.5,
             scope=scope)
@@ -535,6 +536,7 @@ def ssd_anchor_match(labels,
                          num_classes,
                          no_annotation_label,
                          ignore_threshold=0.5,
+                         anchor_for='arm',
                          anchor_scaling=[0.1, 0.1, 0.2, 0.2],
                          dtype=tf.float32,
                          scope='ssd_anchor_match'):

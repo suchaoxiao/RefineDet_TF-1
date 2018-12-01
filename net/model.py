@@ -158,17 +158,17 @@ class Refine_det(object):
             num_classes=self.num_classes, clip=False)
 
         anchor_boxes = common.get_anchors(config, from_layers, dtype=np.float64)
-        arm_anchor_cls, arm_anchor_loc, arm_anchor_scores = common.anchor_match(
-                                                    gtlabels, gtboxes, anchor_boxes, config)
+        arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
+                                                    anchor_boxes, self.config, anchor_for='arm')
         refined_anchors = common.refine_anchors(anchor_boxes, arm_loc)
         end_points['refined_anchors'] = refined_anchors
         end_points['odm_loc'] = odm_loc
         end_points['odm_cls'] = odm_cls
-        odm_anchor_labels, odm_anchor_locations, odm_anchor_scores = \
-                        common.anchor_match(gtlabels, gtboxes, refined_anchors, self.config)
+        odm_anchor_labels, odm_anchor_loc, odm_anchor_scores = \
+                        common.anchor_match(gtlabels, gtboxes, refined_anchors, self.config, anchor_for='odm')
         # filtered_anchors = neg_filter.filter_out(arm_cls, odm_cls, odm_loc_target_mask)
-        arm_cls_loss, arm_loc_loss = losses.arm_losses(arm_cls,arm_loc,arm_anchor_cls, arm_anchor_loc, arm_anchor_scores)
-        odm_cls_loss, odm_loc_loss = losses.odm_losses(odm_cls,odm_loc,odm_anchor_labels, odm_anchor_locations, odm_anchor_scores)
+        arm_cls_loss, arm_loc_loss = losses.arm_losses(arm_cls,arm_loc,arm_anchor_labels, arm_anchor_loc, arm_anchor_scores)
+        odm_cls_loss, odm_loc_loss = losses.odm_losses(odm_cls,odm_loc,odm_anchor_labels, odm_anchor_loc, odm_anchor_scores)
         return tf.add_n([arm_cls_loss, arm_loc_loss, odm_cls_loss, odm_loc_loss]), end_points
 
     def detect_bboxes(self, predictions, localisations,
