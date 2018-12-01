@@ -381,7 +381,6 @@ def ssd_anchor_match_layer(gtlabels,
                             num_classes,
                             no_annotation_label,
                             anchor_for='arm',
-                            refined_anchor=None,
                             ignore_threshold=0.5,
                             anchor_scaling=[0.1, 0.1, 0.2, 0.2],
                             dtype=tf.float32):
@@ -407,13 +406,12 @@ def ssd_anchor_match_layer(gtlabels,
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
     elif anchor_for == 'odm':
-        if refined_anchor is None: raise ValueError('refined anchors must be provided in *odm* anchor matching ')
         xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
         xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]
         yref = yref * anchor_scaling[1] * anchors_layer[3] + anchors_layer[1] 
         wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
         href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
-    else: raise ValueError('*anchor_for* must be one of odm and arm')
+    else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
     ymin = yref - href / 2.
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
@@ -463,7 +461,7 @@ def ssd_anchor_match_layer(gtlabels,
                   feat_ymin, feat_xmin, feat_ymax, feat_xmax):
         """Condition: check label index. i indicate the i_th class
         """
-        r = tf.less(i, tf.shape(labels))
+        r = tf.less(i, tf.shape(gtlabels))
         return r[0]
 
     def body(i, feat_labels, feat_scores,
@@ -563,6 +561,7 @@ def ssd_anchor_match(labels,
                 t_labels, t_loc, t_scores = \
                     ssd_anchor_match_layer(labels, bboxes, anchors_layer,
                                                num_classes, no_annotation_label,
+                                               anchor_for,
                                                ignore_threshold,
                                                anchor_scaling, dtype)
                 target_labels.append(t_labels)
