@@ -31,7 +31,7 @@ def conv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=[3, 3, 3],
     ----------
     (conv, relu)
     """
-    conv = tf.layers.conv3d(from_layer, num_filter,
+    conv = tf.layers.conv2d(from_layer, num_filter,
                             kernel, stride, pad, data_format, name="{}_conv{}".format(name, num))
     if use_bn:
         conv = tf.layers.batch_normalization(
@@ -41,7 +41,7 @@ def conv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=[3, 3, 3],
     return conv
 
 def deconv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=2, padding="same", strides=[2, 2, 2], data_format='channels_last',  act_type='relu'):
-    deconv = tf.layers.conv3d_transpose(inputs=from_layer, filters=num_filter, kernel_size=kernel, strides=strides,
+    deconv = tf.layers.conv2d_transpose(inputs=from_layer, filters=num_filter, kernel_size=kernel, strides=strides,
                                         padding=padding, data_format=data_format, name="{}_deconv".format(name))
     if use_bn:
         deconv = tf.layers.batch_normalization(
