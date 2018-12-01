@@ -142,9 +142,9 @@ class Refine_det(object):
         gtlabels, gtboxes = ground_truths
         from_layers = []
         print(end_points.keys())
-        print(self.ARM_LAYERS)
         for name in self.ARM_LAYERS:
             from_layers.append(end_points[name])
+        print(len(from_layers),'-----------------------')
         # get output of ARM and ODM
         arm_loc, arm_cls, odm_loc, odm_cls = multibox_layer(config, from_layers, \
             num_classes=self.num_classes, clip=False)
