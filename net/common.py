@@ -384,8 +384,8 @@ def ssd_anchor_match_layer(gtlabels,
     one layer.
 
     Arguments:
-      labels: 1D Tensor(int64) containing groundtruth labels;
-      bboxes: Nx4 Tensor(float) with bboxes relative coordinates;
+      labels: (batch, N_gt) Tensor(int64) containing groundtruth labels;
+      bboxes: (batch, N_gt, 4) Tensor(float) with bboxes relative coordinates;
       anchors_layer: [4,cell_width,cell_height,num_anchors]/[batch,cell_width,cell_height,num_anchors,4] 
                             for arm/odm
                             Numpy array with layer anchors;
@@ -399,6 +399,9 @@ def ssd_anchor_match_layer(gtlabels,
             target_locations: [w,h,]
     """
     # Anchors coordinates and volume.
+    gtboxes = tf.cast(gtboxes, dtype)
+    gtlabels = tf.cast(gtlabels, dtype)
+    print('gtboxes: ',gtboxes.get_shape().as_list())
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
         print('href',href.shape)
@@ -411,8 +414,6 @@ def ssd_anchor_match_layer(gtlabels,
         href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
         coord_shape = (yref.shape[0], yref.shape[1], href.shape[2]) #(w,h,anchor_number)
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
-    gtboxes = tf.cast(gtboxes, dtype)
-    gtlabels = tf.cast(gtlabels, dtype)
     ymin = yref - href / 2.
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
@@ -477,8 +478,8 @@ def ssd_anchor_match_layer(gtlabels,
           - only update if beat the score of other bboxes.
         """
         # Jaccard score.
-        label = gtlabels[i]
-        bbox = gtboxes[i]
+        label = gtlabels[:,i,:]
+        bbox = gtboxes[:,i,:]
         try:
             jaccard = jaccard_with_anchors(bbox) # IOU
         except Exception:
