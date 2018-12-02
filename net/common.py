@@ -479,7 +479,7 @@ def ssd_anchor_match_layer(gtlabels,
         """
         # Jaccard score.
         label = tf.reshape(gtlabels[:,i],[-1,])
-        bbox = tf.reshape(gtboxes[:,i,:],[0,-1])
+        bbox = tf.reshape(gtboxes[:,i,:],[-1,-1])
         try:
             jaccard = jaccard_with_anchors(bbox) # IOU
         except Exception:
