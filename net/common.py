@@ -478,7 +478,7 @@ def ssd_anchor_match_layer(gtlabels,
           - only update if beat the score of other bboxes.
         """
         # Jaccard score.
-        label = gtlabels[:,i,:]
+        label = gtlabels[:,i]
         bbox = gtboxes[:,i,:]
         try:
             jaccard = jaccard_with_anchors(bbox) # IOU
