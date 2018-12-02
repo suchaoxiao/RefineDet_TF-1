@@ -560,6 +560,7 @@ def ssd_anchor_match(labels,
         target_localizations = []
         target_scores = []
         for i, anchors_layer in enumerate(anchors):
+            print(i,'anchor href:', anchors_layer[-1].shape)
             with tf.name_scope('bboxes_encode_block_%i' % i):
                 t_labels, t_loc, t_scores = \
                     ssd_anchor_match_layer(labels, bboxes, anchors_layer,
