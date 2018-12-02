@@ -160,7 +160,7 @@ class Refine_det(object):
         anchor_boxes = common.get_anchors(config, from_layers)
         arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
                                                     anchor_boxes, self.config, anchor_for='arm')
-        refined_anchors = common.refine_anchors(anchor_boxes, arm_loc)
+        refined_anchors = common.refine_anchor(anchor_boxes, arm_loc)
         end_points['refined_anchors'] = refined_anchors
         end_points['odm_loc'] = odm_loc
         end_points['odm_cls'] = odm_cls
