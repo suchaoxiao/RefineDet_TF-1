@@ -486,7 +486,7 @@ def ssd_anchor_match_layer(gtlabels,
         mask = tf.greater(jaccard, feat_scores)
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
         mask = tf.logical_and(mask, feat_scores > -0.5)
-        mask = tf.logical_and(mask, label < num_classes)
+        mask = tf.logical_and(mask, feat_labels < num_classes) # modified: label-> feat_label
         # imask = tf.cast(mask, tf.int64)
         fmask = tf.cast(mask, dtype)
         # Update values using mask.
