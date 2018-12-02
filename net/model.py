@@ -150,6 +150,7 @@ class Refine_det(object):
     
     def forward(self, end_points, ground_truths):
         gtlabels, gtboxes = ground_truths
+        print('gtlabels:',gtlabels.get_shape().as_list(),'gtboxes',gtboxes.get_shape().as_list())
         from_layers = []
         for name in self.ARM_LAYERS:
             from_layers.append(end_points[name])
