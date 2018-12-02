@@ -421,7 +421,7 @@ def ssd_anchor_match_layer(gtlabels,
     vol_anchors = (xmax - xmin) * (ymax - ymin)
     
     # Initialize tensors...
-    coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
+    coord_shape = (yref.shape[0], yref.shape[1], yref.shape[2]) #(w,h,anchor_number)
     feat_labels = tf.zeros(coord_shape, dtype=dtype)
     feat_scores = tf.zeros(coord_shape, dtype=dtype)
 
@@ -486,7 +486,7 @@ def ssd_anchor_match_layer(gtlabels,
         mask = tf.greater(jaccard, feat_scores)
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
         mask = tf.logical_and(mask, feat_scores > -0.5)
-        mask = tf.logical_and(mask, feat_labels < num_classes) # modified: label-> feat_label
+        mask = tf.logical_and(mask, label < num_classes) #
         # imask = tf.cast(mask, tf.int64)
         fmask = tf.cast(mask, dtype)
         # Update values using mask.
