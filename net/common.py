@@ -431,16 +431,16 @@ def ssd_anchor_match_layer(gtlabels,
     def jaccard_with_anchors(bbox): # IOU
         """Compute jaccard score between a box and the anchors.
         """
-        int_ymin = tf.maximum(ymin, bbox[0])
-        int_xmin = tf.maximum(xmin, bbox[1])
-        int_ymax = tf.minimum(ymax, bbox[2])
-        int_xmax = tf.minimum(xmax, bbox[3])
+        int_ymin = tf.maximum(ymin, bbox[:,0])
+        int_xmin = tf.maximum(xmin, bbox[:,1])
+        int_ymax = tf.minimum(ymax, bbox[:,2])
+        int_xmax = tf.minimum(xmax, bbox[:,3])
         h = tf.maximum(int_ymax - int_ymin, 0.)
         w = tf.maximum(int_xmax - int_xmin, 0.)
         # Volumes.
         inter_vol = h * w
         union_vol = vol_anchors - inter_vol \
-            + (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+            + (bbox[:,2] - bbox[:,0]) * (bbox[:,3] - bbox[:,1])
         jaccard = tf.div(inter_vol, union_vol)
         return jaccard
 
