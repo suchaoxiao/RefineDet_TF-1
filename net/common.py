@@ -486,7 +486,7 @@ def ssd_anchor_match_layer(gtlabels,
         try:
             mask = tf.logical_and(mask, label < num_classes) #
         except Exception:
-            assert False, 'mask: '+str(mask.get_shape().as_list())+'label < num_classes:'+str(label < num_classes)
+            assert False, 'anchor_for:'+anchor_for+'mask: '+str(mask.get_shape().as_list())+'label < num_classes:'+str(label < num_classes)
         # imask = tf.cast(mask, tf.int64)
         fmask = tf.cast(mask, dtype)
         # Update values using mask.
