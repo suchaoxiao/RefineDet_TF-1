@@ -401,6 +401,7 @@ def ssd_anchor_match_layer(gtlabels,
     # Anchors coordinates and volume.
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
+        print('href',href.shape)
         coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
     elif anchor_for == 'odm':
         xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
