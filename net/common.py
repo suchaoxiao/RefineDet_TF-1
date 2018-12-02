@@ -447,10 +447,7 @@ def ssd_anchor_match_layer(gtlabels,
     def intersection_with_anchors(bbox):
         """Compute intersection score between a gbox and the anchors.
         """
-        try:
-            int_ymin = tf.maximum(ymin, bbox[0])
-        except Exception:
-            assert False, 'anchor_for:'+anchor_for+' ymin: '+str(ymin.get_shape().as_list())+' bbox:'+str(bbox)
+        int_ymin = tf.maximum(ymin, bbox[0])
         int_xmin = tf.maximum(xmin, bbox[1])
         int_ymax = tf.minimum(ymax, bbox[2])
         int_xmax = tf.minimum(xmax, bbox[3])
@@ -482,7 +479,10 @@ def ssd_anchor_match_layer(gtlabels,
         # Jaccard score.
         label = gtlabels[i]
         bbox = gtboxes[i]
-        jaccard = jaccard_with_anchors(bbox) # IOU
+        try:
+            jaccard = jaccard_with_anchors(bbox) # IOU
+        except Exception:
+            assert False, 'anchor_for:'+anchor_for+' ymin: '+str(ymin.get_shape().as_list())+' bbox:'+str(bbox)
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
