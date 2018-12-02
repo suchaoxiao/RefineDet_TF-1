@@ -447,7 +447,10 @@ def ssd_anchor_match_layer(gtlabels,
     def intersection_with_anchors(bbox):
         """Compute intersection score between a gbox and the anchors.
         """
-        int_ymin = tf.maximum(ymin, bbox[0])
+        try:
+            int_ymin = tf.maximum(ymin, bbox[0])
+        except Exception:
+            assert False, 'anchor_for:'+anchor_for+' ymin: '+str(ymin.get_shape().as_list())+' bbox:'+str(bbox)
         int_xmin = tf.maximum(xmin, bbox[1])
         int_ymax = tf.minimum(ymax, bbox[2])
         int_xmax = tf.minimum(xmax, bbox[3])
@@ -484,10 +487,8 @@ def ssd_anchor_match_layer(gtlabels,
         mask = tf.greater(jaccard, feat_scores)
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
         mask = tf.logical_and(mask, feat_scores > -0.5)
-        try:
-            mask = tf.logical_and(mask, label < num_classes) #
-        except Exception:
-            assert False, 'anchor_for:'+anchor_for+' mask: '+str(mask.get_shape().as_list())+'label:'+str(label)
+        mask = tf.logical_and(mask, label < num_classes) #
+            
         # imask = tf.cast(mask, tf.int64)
         fmask = tf.cast(mask, dtype)
         # Update values using mask.
