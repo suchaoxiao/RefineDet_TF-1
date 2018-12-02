@@ -481,16 +481,14 @@ def ssd_anchor_match_layer(gtlabels,
         jaccard = jaccard_with_anchors(bbox) # IOU
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
-        assert mask.get_shape().as_list() == feat_scores.get_shape().as_list(), \
-                'yref shape'+str(yref.get_shape().as_list())+'and '+str(feat_scores.get_shape().as_list())
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
         mask = tf.logical_and(mask, feat_scores > -0.5)
-        assert mask.get_shape().as_list() == feat_scores.get_shape().as_list(), 'not same shape2'
-        mask = tf.logical_and(mask, label < num_classes) #
-        assert mask.get_shape().as_list() == feat_scores.get_shape().as_list(), 'not same shape3'
+        try:
+            mask = tf.logical_and(mask, label < num_classes) #
+        except Exception:
+            assert False, 'mask: '+str(mask.get_shape().as_list())+'label < num_classes:'+str(label < num_classes)
         # imask = tf.cast(mask, tf.int64)
         fmask = tf.cast(mask, dtype)
-        assert mask.get_shape().as_list() == feat_scores.get_shape().as_list(), 'not same shape4'
         # Update values using mask.
         feat_labels = fmask * label + (1 - fmask) * feat_labels
         # replace values in feat_scores with jaccard according to mask
