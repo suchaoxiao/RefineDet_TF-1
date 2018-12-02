@@ -417,7 +417,7 @@ def ssd_anchor_match_layer(gtlabels,
     vol_anchors = (xmax - xmin) * (ymax - ymin)
     
     # Initialize tensors...
-    coord_shape = (yref.shape[0], yref.shape[1], yref.shape[2]) #(w,h,anchor_number)
+    coord_shape = (yref.shape[0], yref.shape[1], href.shape[2]) #(w,h,anchor_number)
     feat_labels = tf.zeros(coord_shape, dtype=dtype)
     feat_scores = tf.zeros(coord_shape, dtype=dtype)
 
