@@ -483,7 +483,7 @@ def ssd_anchor_match_layer(gtlabels,
         try:
             jaccard = jaccard_with_anchors(bbox) # IOU
         except Exception:
-            assert False, 'anchor_for:'+anchor_for+' ymin: '+str(ymin.shape)+' bbox:'+str(bbox[0])
+            assert False, 'anchor_for:'+anchor_for+' ymin: '+str(ymin.shape)+' bbox:'+str(bbox)
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
