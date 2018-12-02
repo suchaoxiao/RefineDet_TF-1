@@ -51,18 +51,14 @@ def deconv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=2, paddi
     return deconv
 
 def tcb_module(conv, deconv, num_filter, level=1):
-    print('conv shape', conv.get_shape().as_list(), 'deconv shape', deconv.get_shape().as_list())
+    # print('conv shape', conv.get_shape().as_list(), 'deconv shape', deconv.get_shape().as_list())
     deconv = deconv_act_layer(deconv, "tcb{}".format(
         level), num_filter, use_bn=False, kernel=2, padding="same", strides=2, data_format='channels_last', act_type=None)
     conv1 = conv_act_layer(conv, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
                              stride=1, pad='same', act_type="relu", num=1)
     conv2 = conv_act_layer(conv1, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
                              stride=1, pad='same', act_type=None, num=2)
-    try:
-        eltwise_sum = tf.add(deconv, conv2)
-    except Exception:
-        print('stop!!!!!!!!!!!!!!!!!!',conv1.name)
-        assert False
+    eltwise_sum = tf.add(deconv, conv2)
     relu = tf.nn.relu(eltwise_sum, name="tcb{}_elt_relu".format(level))
     conv3 = conv_act_layer(relu, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
                              stride=1, pad='same', act_type="relu", num=3)
