@@ -412,7 +412,8 @@ def ssd_anchor_match_layer(gtlabels,
         wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
         href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
-    gtboxes = tf.cast(gtboxes, xref.dtype)
+    gtboxes = tf.cast(gtboxes, dtype)
+    gtlabels = tf.cast(gtlabels, dtype)
     ymin = yref - href / 2.
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
@@ -421,7 +422,7 @@ def ssd_anchor_match_layer(gtlabels,
     
     # Initialize tensors...
     coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
-    feat_labels = tf.zeros(coord_shape, dtype=tf.int64)
+    feat_labels = tf.zeros(coord_shape, dtype=dtype)
     feat_scores = tf.zeros(coord_shape, dtype=dtype)
 
     feat_ymin = tf.zeros(coord_shape, dtype=dtype)
@@ -486,10 +487,10 @@ def ssd_anchor_match_layer(gtlabels,
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
         mask = tf.logical_and(mask, feat_scores > -0.5)
         mask = tf.logical_and(mask, label < num_classes)
-        imask = tf.cast(mask, tf.int64)
+        # imask = tf.cast(mask, tf.int64)
         fmask = tf.cast(mask, dtype)
         # Update values using mask.
-        feat_labels = imask * label + (1 - imask) * feat_labels
+        feat_labels = fmask * label + (1 - fmask) * feat_labels
         # replace values in feat_scores with jaccard according to mask
         feat_scores = tf.where(mask, jaccard, feat_scores) 
 
