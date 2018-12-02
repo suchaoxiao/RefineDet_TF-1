@@ -484,7 +484,8 @@ def ssd_anchor_match_layer(gtlabels,
         jaccard = jaccard_with_anchors(bbox) # IOU
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
-        assert mask.get_shape().as_list() == feat_scores.get_shape().as_list(), 'not same shape1'
+        assert mask.get_shape().as_list() == feat_scores.get_shape().as_list(), \
+                'not same shape1, got'+str(mask.get_shape().as_list())+'and'+str(feat_scores.get_shape().as_list())
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
         mask = tf.logical_and(mask, feat_scores > -0.5)
         assert mask.get_shape().as_list() == feat_scores.get_shape().as_list(), 'not same shape2'
