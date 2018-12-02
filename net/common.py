@@ -401,12 +401,14 @@ def ssd_anchor_match_layer(gtlabels,
     # Anchors coordinates and volume.
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
+        coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
     elif anchor_for == 'odm':
         xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
         xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]
         yref = yref * anchor_scaling[1] * anchors_layer[3] + anchors_layer[1] 
         wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
         href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
+        coord_shape = (yref.shape[0], yref.shape[1], href.shape[2]) #(w,h,anchor_number)
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
     gtboxes = tf.cast(gtboxes, dtype)
     gtlabels = tf.cast(gtlabels, dtype)
@@ -417,7 +419,6 @@ def ssd_anchor_match_layer(gtlabels,
     vol_anchors = (xmax - xmin) * (ymax - ymin)
     
     # Initialize tensors...
-    coord_shape = (yref.shape[0], yref.shape[1], href.shape[2]) #(w,h,anchor_number)
     feat_labels = tf.zeros(coord_shape, dtype=dtype)
     feat_scores = tf.zeros(coord_shape, dtype=dtype)
 
