@@ -197,7 +197,7 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         assert len(size) > 0, "must provide at least one size"
         ratio = ratios[k]
         assert len(ratio) > 0, "must provide at least one ratio"
-        num_anchors = len(size) - 1 + len(ratio)
+        num_anchors = len(size) + len(ratio)
         
         # create location prediction layer
         num_loc_pred = num_anchors * 4
