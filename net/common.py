@@ -418,10 +418,10 @@ def ssd_anchor_match_layer(gtlabels,
         coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
     elif anchor_for == 'odm':
         xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
-        xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]
-        yref = yref * anchor_scaling[1] * anchors_layer[3] + anchors_layer[1] 
-        wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
-        href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
+        # xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]
+        # yref = yref * anchor_scaling[1] * anchors_layer[3] + anchors_layer[1] 
+        # wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
+        # href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
         coord_shape = (yref.shape[0], yref.shape[1], yref.shape[2], href.shape[3]) #(w,h,anchor_number)
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
     ymin = yref - href / 2.
@@ -587,9 +587,9 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     '''
     input:
         anchors_layer: (yref,xref,href,wref)tuple, the original anchor boxes,
-        arm_loc_preds: outputs from arm layers
+        arm_loc_preds: (batch, feat_w, feat_h, num_anchors*4) outputs from arm layers
     return:
-        refined anchor: expand 'batch' dimension in the 0 axis
+        refined anchor: (batch, feat_w, feat_h, num_anchors*4)expand 'batch' dimension in the 0 axis
     '''
     aloc_shape = arm_loc_preds.get_shape().as_list()
     print('arm_loc_preds:',aloc_shape)
