@@ -201,7 +201,6 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         
         # create location prediction layer
         num_loc_pred = num_anchors * 4
-        print('num_loc_pred',num_loc_pred)
         loc_pred = tf.layers.conv2d(from_layer, num_loc_pred, kernel_size=3, strides=1,
                  padding="same", data_format='channels_last', name="{}_loc_conv".format(from_name).replace(':','_'))
         # loc_pred = tf.transpose(loc_pred, perm=(0, 2, 3, 1))
@@ -209,7 +208,6 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
 
         # create class prediction layer
         num_cls_pred = num_anchors * num_classes
-        print('num_anchors',num_anchors,'num_classes',num_classes)
         cls_pred = tf.layers.conv2d(from_layer, num_cls_pred, kernel_size=3, strides=1,
                  padding="same", data_format='channels_last', name="{}_cls_conv".format(from_name).replace(':','_'))
         # cls_pred = tf.transpose(cls_pred, perm=(0, 2, 3, 1))
@@ -361,12 +359,12 @@ def concat_preds(loc_preds_layers, cls_preds_layers, mode):
         num_anchors = lshape[-1]//4
         num_classes = cshape[-1]//num_anchors
         loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
-        cls_pred = tf.reshape(loc_pred,[-1,cshape[1]*cshape[2]*num_anchors,num_classes])
+        cls_pred = tf.reshape(cls_pred,[-1,cshape[1]*cshape[2]*num_anchors,num_classes])
         loc_preds_layers_m.append(loc_pred)
-    loc_preds = tf.concat(loc_preds_layers_m,
-                          axis=1, name="{}_multibox_loc".format(mode))
+        cls_preds_layers_m.append(cls_pred)
+    loc_preds = tf.concat(loc_preds_layers_m, axis=1, name="{}_multibox_loc".format(mode))
     print('loc preds after concat:',loc_preds.get_shape().as_list())
-    cls_preds = tf.concat(cls_preds_layers, axis=1, name="{}_multibox_cls".format(mode))
+    cls_preds = tf.concat(cls_preds_layers_m, axis=1, name="{}_multibox_cls".format(mode))
     # cls_preds = tf.transpose(cls_preds, perm=(0, 2, 1),)
     print('cls preds after concat:',cls_preds.get_shape().as_list())
     return loc_preds, cls_preds
