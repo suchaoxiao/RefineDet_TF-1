@@ -572,25 +572,26 @@ def ssd_anchor_match(labels,
 
 #===================================================================================
 
-def refine_anchor_layer(arm_anchor_boxes_loc, arm_loc_preds, anchor_scaling=[0.1,0.1,0.2,0.2]):
+def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.2,0.2]):
     '''
     input:
-        arm_anchor_boxes_loc: the original anchor boxes
+        anchors_layer: (yref,xref,href,wref)tuple, the original anchor boxes,
         arm_loc_preds: outputs from arm layers
     return:
         refined anchor: expand 'batch' dimension in the 0 axis
     '''
-    print('arm_anchor_boxes_loc',arm_anchor_boxes_loc.shape)
+    print('arm_loc_preds:',arm_loc_preds.get_shape().as_list())
+    xref, yref, wref, href = anchors_layer
     batch_size = arm_loc_preds.shape[0]
-    arm_anchor_boxes = tf.concat([arm_anchor_boxes_loc] * batch_size, axis=0)
+    # arm_anchor_boxes = tf.concat([arm_anchor_boxes_loc] * batch_size, axis=0)
 
-    arm_anchor_boxes_bs = tf.split(
-        arm_anchor_boxes_loc, num_or_size_splits=4, axis=-1)
+    # arm_anchor_boxes_bs = tf.split(
+    #     arm_anchor_boxes_loc, num_or_size_splits=4, axis=-1)
     # decode matched arm_anchor locations
-    center_x_a = arm_anchor_boxes_bs[0] * height_a * anchor_scaling[0]
-    center_y_a = arm_anchor_boxes_bs[1] * width_a * anchor_scaling[1]
-    width_a = tf.exp(arm_anchor_boxes_bs[2] * anchor_scaling[2]) * arm_anchor_boxes_bs[2] #/ 2.0
-    height_a = tf.exp(arm_anchor_boxes_bs[3] * anchor_scaling[3]) * arm_anchor_boxes_bs[3]
+    # center_x_a = arm_anchor_boxes_bs[0] * height_a * anchor_scaling[0]
+    # center_y_a = arm_anchor_boxes_bs[1] * width_a * anchor_scaling[1]
+    # width_a = tf.exp(arm_anchor_boxes_bs[2] * anchor_scaling[2]) * arm_anchor_boxes_bs[2] #/ 2.0
+    # height_a = tf.exp(arm_anchor_boxes_bs[3] * anchor_scaling[3]) * arm_anchor_boxes_bs[3]
 
     arm_loc_preds = tf.reshape(arm_loc_preds, shape=[0, -1, 4])
     arm_loc_preds_bs = tf.split(
@@ -602,10 +603,10 @@ def refine_anchor_layer(arm_anchor_boxes_loc, arm_loc_preds, anchor_scaling=[0.1
     heigt_preds = arm_loc_preds_bs[3]
 
     # decode and refine anchors ??
-    coord_x = center_x_preds * height_a * anchor_scaling[0] + center_x_a 
-    coord_y = center_y_preds * width_a * anchor_scaling[1] + center_y_a
-    coord_width = tf.exp(width_preds * anchor_scaling[2]) * width_a# / 2.0
-    coord_heigt = tf.exp(heigt_preds * anchor_scaling[3]) * height_a #/ 2.0
+    coord_x = center_x_preds * href * anchor_scaling[0] + xref 
+    coord_y = center_y_preds * wref * anchor_scaling[1] + yref
+    coord_width = tf.exp(width_preds * anchor_scaling[2]) * wref# / 2.0
+    coord_heigt = tf.exp(heigt_preds * anchor_scaling[3]) * href #/ 2.0
 
     refined_anchor = tf.concat([coord_x, coord_y, coord_width, coord_heigt], axis=-1)
     return refined_anchor
