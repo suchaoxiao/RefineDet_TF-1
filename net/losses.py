@@ -16,7 +16,7 @@ def abs_smooth(x):
     return r
 
 
-def arm_losses(logits, localisations,
+def arm_losses(cls_preds_layers, loc_preds_layers,
            gclasses, glocalisations, gscores,
            match_threshold=0.5,
            negative_ratio=3.,
@@ -36,7 +36,7 @@ def arm_losses(logits, localisations,
                       label_smoothing=label_smoothing,
                       scope=scope)
 
-def odm_losses(logits, localisations,
+def odm_losses(cls_preds_layers, loc_preds_layers,
            gclasses, glocalisations, gscores,
            match_threshold=0.5,
            negative_ratio=3.,
@@ -53,7 +53,7 @@ def odm_losses(logits, localisations,
                       label_smoothing=label_smoothing,
                       scope=scope)
 
-def generate_losses(logits, localisations,
+def generate_losses(cls_preds_layers, loc_preds_layers,
                gclasses, glocalisations, gscores,
                match_threshold=0.5,
                negative_ratio=3.,
@@ -76,11 +76,19 @@ def generate_losses(logits, localisations,
         l_cross_pos = []
         l_cross_neg = []
         l_loc = []
-        for i in range(len(logits)):
-            dtype = logits[i].dtype
-            with tf.name_scope('block_%i' % i):
+        for ii, (loc_pred,cls_pred) in enumerate(zip(loc_preds_layers, cls_preds_layers)):
+            dtype = cls_pred.dtype
+            lshape = loc_pred.get_shape().as_list()
+            cshape = cls_pred.get_shape().as_list()
+            num_anchors = lshape[-1]//4
+            num_classes = cshape[-1]//num_anchors
+            loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
+            cls_pred = tf.reshape(cls_pred,[-1,cshape[1]*cshape[2]*num_anchors,num_classes])
+            with tf.name_scope('block_%i' % ii):
                 # Determine weights Tensor.
-                pmask = gscores[i] > match_threshold
+                pmask = gscores[ii] > match_threshold
+                print('gscores['+str(ii)+']:', gscores[ii])
+                print('gloc['+str(ii)+']:', glocalisations[ii])
                 fpmask = tf.cast(pmask, dtype)
                 n_positives = tf.reduce_sum(fpmask)
 
@@ -91,9 +99,9 @@ def generate_losses(logits, localisations,
 
                 # Negative mask.
                 no_classes = tf.cast(pmask, tf.int32)
-                predictions = tf.nn.softmax(logits[i])
+                predictions = tf.nn.softmax(cls_pred)
                 nmask = tf.logical_and(tf.logical_not(pmask),
-                                       gscores[i] > -0.5)
+                                       gscores[ii] > -0.5)
                 fnmask = tf.cast(nmask, dtype)
                 nvalues = tf.where(nmask,
                                    predictions[:, :, :, :, 0],
@@ -114,15 +122,14 @@ def generate_losses(logits, localisations,
 
                 # Add cross-entropy loss.
                 with tf.name_scope('cross_entropy_pos'):
-                    
                     # sparse loss accept label with 0-N rather than one-hot vectors
-                    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits[i], 
-                                                                          labels=gclasses[i])
+                    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=cls_pred, 
+                                                                          labels=gclasses[ii])
                     loss = tf.losses.compute_weighted_loss(loss, fpmask)
                     l_cross_pos.append(loss)
 
                 with tf.name_scope('cross_entropy_neg'):
-                    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits[i],
+                    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=cls_pred,
                                                                           labels=no_classes)
                     loss = tf.losses.compute_weighted_loss(loss, fnmask)
                     l_cross_neg.append(loss)
@@ -132,7 +139,7 @@ def generate_losses(logits, localisations,
                     # Weights Tensor: positive mask + random negative.
                     weights = tf.expand_dims(alpha * fpmask, axis=-1)
                     loss = abs_smooth(
-                        localisations[i] - glocalisations[i])
+                        loc_pred - glocalisations[ii])
                     loss = tf.losses.compute_weighted_loss(loss, weights)
                     l_loc.append(loss)
 
