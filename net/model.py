@@ -194,5 +194,5 @@ class Refine_det(object):
 
 
 def get_model():
-    net = Refine_det(num_classes=3)
+    net = Refine_det(num_classes=20)
     return net
