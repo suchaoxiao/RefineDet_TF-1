@@ -27,8 +27,8 @@ def arm_losses(cls_preds_layers, loc_preds_layers,
     """
     # since we only predict foreground/background, we convert all positive labels to 1
     gclasses = [tf.where(tf.greater(gclasses[i],0),tf.ones_like(gclasses[i]),gclasses[i])\
-                 for i in range(len(logits))]
-    return generate_losses(logits, localisations,
+                 for i in range(len(cls_preds_layers))]
+    return generate_losses(cls_preds_layers, loc_preds_layers,
                       gclasses, glocalisations, gscores,
                       match_threshold=match_threshold,
                       negative_ratio=negative_ratio,
@@ -45,7 +45,7 @@ def odm_losses(cls_preds_layers, loc_preds_layers,
            scope='odm_losses'):
     """Define the SSD network losses.
     """
-    return generate_losses(logits, localisations,
+    return generate_losses(cls_preds_layers, loc_preds_layers,
                       gclasses, glocalisations, gscores,
                       match_threshold=match_threshold,
                       negative_ratio=negative_ratio,
