@@ -594,6 +594,7 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     aloc_shape = arm_loc_preds.get_shape().as_list()
     print('arm_loc_preds:',aloc_shape)
     xref, yref, wref, href = anchors_layer
+    print(xref.shape, yref.shape, wref.shape, href.shape)
     # batch_size = aloc_shape[0]
     # arm_anchor_boxes = tf.concat([arm_anchor_boxes_loc] * batch_size, axis=0)
 
