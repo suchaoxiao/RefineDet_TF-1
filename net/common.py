@@ -608,19 +608,22 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
 
     arm_loc_preds = tf.reshape(arm_loc_preds,
                 shape=[-1, aloc_shape[1],aloc_shape[2], 4, aloc_shape[3]//4])
-    arm_loc_preds_bs = tf.split(
-        arm_loc_preds, num_or_size_splits=4, axis=-2)
+    arm_loc_preds_bs = tf.unstack(arm_loc_preds, axis=-2)
 
     center_x_preds = arm_loc_preds_bs[0]
     center_y_preds = arm_loc_preds_bs[1]
     width_preds = arm_loc_preds_bs[2]
-    heigt_preds = arm_loc_preds_bs[3]
+    height_preds = arm_loc_preds_bs[3]
+    print('1.',center_x_preds.get_shape().as_list(),
+            center_y_preds.get_shape().as_list(),
+            width_preds.get_shape().as_list(),
+            height_preds.get_shape().as_list())
 
     # decode and refine anchors ??
     coord_x = center_x_preds * href * anchor_scaling[0] + xref 
     coord_y = center_y_preds * wref * anchor_scaling[1] + yref
     coord_width = tf.exp(width_preds * anchor_scaling[2]) * wref# / 2.0
-    coord_heigt = tf.exp(heigt_preds * anchor_scaling[3]) * href #/ 2.0
+    coord_heigt = tf.exp(height_preds * anchor_scaling[3]) * href #/ 2.0
 
     refined_anchor = tf.concat([coord_x, coord_y, coord_width, coord_heigt], axis=-1)
     return refined_anchor
