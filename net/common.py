@@ -606,7 +606,7 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     # height_a = tf.exp(arm_anchor_boxes_bs[3] * anchor_scaling[3]) * arm_anchor_boxes_bs[3]
 
     arm_loc_preds = tf.reshape(arm_loc_preds,
-                shape=[-1, aloc_shape[0]*aloc_shape[1]*aloc_shape[2]//4, 4])
+                shape=[-1, aloc_shape[1]*aloc_shape[2]*aloc_shape[3]//4, 4])
     arm_loc_preds_bs = tf.split(
         arm_loc_preds, num_or_size_splits=4, axis=-1)
 
