@@ -355,9 +355,9 @@ def multibox_layer(config, layers, num_classes, clip=False):
 def concat_preds(loc_preds_layers, cls_preds_layers, mode):
     loc_preds_layers_m = []
     cls_preds_layers_m = []
-    for ii, (loc_preds,cls_preds) in enumerate(zip(loc_preds_layers, cls_preds_layers)):
-        lshape = loc_preds.get_shape().as_list()
-        cshape = cls_preds.get_shape().as_list()
+    for ii, (loc_pred,cls_pred) in enumerate(zip(loc_preds_layers, cls_preds_layers)):
+        lshape = loc_pred.get_shape().as_list()
+        cshape = cls_pred.get_shape().as_list()
         num_anchors = lshape[-1]//4
         num_classes = cshape[-1]//num_anchors
         loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
