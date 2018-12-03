@@ -416,13 +416,15 @@ def ssd_anchor_match_layer(gtlabels,
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
         coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
+        feat_labels = tf.zeros(coord_shape, dtype=dtype)
     elif anchor_for == 'odm':
         xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
         # xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]
         # yref = yref * anchor_scaling[1] * anchors_layer[3] + anchors_layer[1] 
         # wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
         # href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
-        coord_shape = xref.get_shape().as_list() #(batch,w,h,anchor_number)
+        feat_labels = tf.zeros_like(xref)
+        # coord_shape = xref.get_shape().as_list() #(batch,w,h,anchor_number)
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
     ymin = yref - href / 2.
     xmin = xref - wref / 2.
@@ -431,13 +433,12 @@ def ssd_anchor_match_layer(gtlabels,
     vol_anchors = (xmax - xmin) * (ymax - ymin)
     print('coord_shape',coord_shape,'dtype',dtype)
     # Initialize tensors...
-    feat_labels = tf.zeros(coord_shape, dtype=dtype)
-    feat_scores = tf.zeros(coord_shape, dtype=dtype)
+    feat_scores = tf.zeros_like(feat_labels)
 
-    feat_ymin = tf.zeros(coord_shape, dtype=dtype)
-    feat_xmin = tf.zeros(coord_shape, dtype=dtype)
-    feat_ymax = tf.ones(coord_shape, dtype=dtype)
-    feat_xmax = tf.ones(coord_shape, dtype=dtype)
+    feat_ymin = tf.zeros_like(feat_labels)
+    feat_xmin = tf.zeros_like(feat_labels)
+    feat_ymax = tf.ones_like(feat_labels)
+    feat_xmax = tf.ones_like(feat_labels)
 
     def jaccard_with_anchors(bbox): # IOU
         """Compute jaccard score between a box and the anchors.
