@@ -100,6 +100,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 # Negative mask.
                 no_classes = tf.cast(pmask, tf.int32)
                 predictions = tf.nn.softmax(cls_pred)
+                print('predictions:', predictions.get_shape().as_list())
                 nmask = tf.logical_and(tf.logical_not(pmask),
                                        gscores[ii] > -0.5)
                 fnmask = tf.cast(nmask, dtype)
