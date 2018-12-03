@@ -362,10 +362,10 @@ def concat_preds(loc_preds_layers, cls_preds_layers, mode):
         loc_preds_layers_m.append(loc_pred)
         cls_preds_layers_m.append(cls_pred)
     loc_preds = tf.concat(loc_preds_layers_m, axis=1, name="{}_multibox_loc".format(mode))
-    print('loc preds after concat:',loc_preds.get_shape().as_list())
+    # print('loc preds after concat:',loc_preds.get_shape().as_list())
     cls_preds = tf.concat(cls_preds_layers_m, axis=1, name="{}_multibox_cls".format(mode))
     # cls_preds = tf.transpose(cls_preds, perm=(0, 2, 1),)
-    print('cls preds after concat:',cls_preds.get_shape().as_list())
+    # print('cls preds after concat:',cls_preds.get_shape().as_list())
     return loc_preds, cls_preds
 # ================================================================================
 def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, scope=None):
@@ -431,7 +431,6 @@ def ssd_anchor_match_layer(gtlabels,
     ymax = yref + href / 2.
     xmax = xref + wref / 2.
     vol_anchors = (xmax - xmin) * (ymax - ymin)
-    print('coord_shape',coord_shape,'dtype',dtype)
     # Initialize tensors...
     feat_scores = tf.zeros_like(feat_labels)
 
@@ -621,13 +620,13 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     coord_y = center_y_preds * wref * anchor_scaling[1] + yref
     coord_width = tf.exp(width_preds * anchor_scaling[2]) * wref# / 2.0
     coord_heigt = tf.exp(height_preds * anchor_scaling[3]) * href #/ 2.0
-    print('1.',coord_x.get_shape().as_list(),
-            coord_y.get_shape().as_list(),
-            coord_width.get_shape().as_list(),
-            coord_heigt.get_shape().as_list())
+    # print('1.',coord_x.get_shape().as_list(),
+    #         coord_y.get_shape().as_list(),
+    #         coord_width.get_shape().as_list(),
+    #         coord_heigt.get_shape().as_list())
 
     refined_anchor = tf.concat([coord_x, coord_y, coord_width, coord_heigt], axis=-1)
-    print('2.',refined_anchor.get_shape().as_list())
+    # print('2.',refined_anchor.get_shape().as_list())
     return refined_anchor
 
 def refine_anchor(anchor_location_all_layers, loc_pred_all_layers):
