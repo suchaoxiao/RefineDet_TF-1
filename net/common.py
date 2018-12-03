@@ -401,10 +401,8 @@ def ssd_anchor_match_layer(gtlabels,
     # Anchors coordinates and volume.
     gtboxes = tf.cast(gtboxes, dtype)
     gtlabels = tf.cast(gtlabels, dtype)
-    print('gtboxes: ',gtboxes.get_shape().as_list())
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
-        print('href',href.shape)
         coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
     elif anchor_for == 'odm':
         xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
@@ -582,6 +580,7 @@ def refine_anchor_layer(arm_anchor_boxes_loc, arm_loc_preds, anchor_scaling=[0.1
     return:
         refined anchor: expand 'batch' dimension in the 0 axis
     '''
+    print('arm_anchor_boxes_loc',arm_anchor_boxes_loc.shape)
     batch_size = arm_loc_preds.shape[0]
     arm_anchor_boxes = tf.concat([arm_anchor_boxes_loc] * batch_size, axis=0)
 
