@@ -211,7 +211,6 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         cls_pred = tf.layers.conv2d(from_layer, num_cls_pred, kernel_size=3, strides=1,
                  padding="same", data_format='channels_last', name="{}_cls_conv".format(from_name).replace(':','_'))
         # cls_pred = tf.transpose(cls_pred, perm=(0, 2, 3, 1))
-        
         # cls_pred = tf.layers.flatten(cls_pred)
         cls_layers.append(cls_pred)
     
@@ -592,9 +591,10 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     return:
         refined anchor: expand 'batch' dimension in the 0 axis
     '''
-    print('arm_loc_preds:',arm_loc_preds.get_shape().as_list())
+    aloc_shape = arm_loc_preds.get_shape().as_list()
+    print('arm_loc_preds:',aloc_shape)
     xref, yref, wref, href = anchors_layer
-    batch_size = arm_loc_preds.shape[0]
+    # batch_size = aloc_shape[0]
     # arm_anchor_boxes = tf.concat([arm_anchor_boxes_loc] * batch_size, axis=0)
 
     # arm_anchor_boxes_bs = tf.split(
@@ -605,7 +605,8 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     # width_a = tf.exp(arm_anchor_boxes_bs[2] * anchor_scaling[2]) * arm_anchor_boxes_bs[2] #/ 2.0
     # height_a = tf.exp(arm_anchor_boxes_bs[3] * anchor_scaling[3]) * arm_anchor_boxes_bs[3]
 
-    arm_loc_preds = tf.reshape(arm_loc_preds, shape=[0, -1, 4])
+    arm_loc_preds = tf.reshape(arm_loc_preds,
+                shape=[-1, aloc_shape[0]*aloc_shape[1]*aloc_shape[2]//4, 4])
     arm_loc_preds_bs = tf.split(
         arm_loc_preds, num_or_size_splits=4, axis=-1)
 
