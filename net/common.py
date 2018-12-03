@@ -198,15 +198,13 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         ratio = ratios[k]
         assert len(ratio) > 0, "must provide at least one ratio"
         num_anchors = len(size) - 1 + len(ratio)
-
+        
         # create location prediction layer
         num_loc_pred = num_anchors * 4
         print('num_loc_pred',num_loc_pred)
         loc_pred = tf.layers.conv2d(from_layer, num_loc_pred, kernel_size=3, strides=1,
                  padding="same", data_format='channels_last', name="{}_loc_conv".format(from_name).replace(':','_'))
         # loc_pred = tf.transpose(loc_pred, perm=(0, 2, 3, 1))
-        loc_pred = tf.layers.flatten(loc_pred)
-        print('layer [',k,'] loc pred after flatten:',loc_pred.get_shape().as_list())
         loc_layers.append(loc_pred)
 
         # create class prediction layer
@@ -215,20 +213,11 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         cls_pred = tf.layers.conv2d(from_layer, num_cls_pred, kernel_size=3, strides=1,
                  padding="same", data_format='channels_last', name="{}_cls_conv".format(from_name).replace(':','_'))
         # cls_pred = tf.transpose(cls_pred, perm=(0, 2, 3, 1))
-        print('layer [',k,'] cls pred:',cls_pred.get_shape().as_list())
-        cls_pred = tf.layers.flatten(cls_pred)
-        print('layer [',k,'] cls pred after flatten:',cls_pred.get_shape().as_list())
+        
+        # cls_pred = tf.layers.flatten(cls_pred)
         cls_layers.append(cls_pred)
     
-    loc_preds = tf.concat(loc_layers,
-                          axis=1, name="{}_multibox_loc".format(mode))
-    loc_preds = tf.reshape(loc_preds,[-1,-1,4])
-    print('loc preds after concat:',loc_preds.get_shape().as_list())
-    cls_preds = tf.concat(cls_layers, axis=1)
-    cls_preds = tf.reshape(cls_preds, shape=[-1, -1, num_classes])
-    cls_preds = tf.transpose(cls_preds, perm=(0, 2, 1), name="{}_multibox_cls".format(mode))
-    print('cls preds after concat:',cls_preds.get_shape().as_list())
-    return [loc_preds, cls_preds]
+    return loc_layers, cls_layers
 
 def multi_layer_feature(body, from_layers):
     """Wrapper function to extract features from base network, attaching extra
@@ -357,12 +346,30 @@ def multibox_layer(config, layers, num_classes, clip=False):
 
     interm_layer_channel = config['interm_layer_channel']
     odm_layers = construct_refinedet(layers)
-    arm_loc, arm_cls = getpred(config, layers, 1, sizes, ratios, mode='arm', clip=False, 
+    arm_loc_layers, arm_cls_layers = getpred(config, layers, 1, sizes, ratios, mode='arm', clip=False, 
                                 interm_layer_channel=interm_layer_channel, steps=steps)
-    odm_loc, odm_cls = getpred(config, odm_layers, num_classes, sizes, ratios, mode='odm', 
+    odm_loc_layers, odm_cls_layers = getpred(config, odm_layers, num_classes, sizes, ratios, mode='odm', 
                                 clip=False, interm_layer_channel=interm_layer_channel, steps=steps)
-    return [arm_loc, arm_cls, odm_loc, odm_cls]
+    return [arm_loc_layers, arm_cls_layers, odm_loc_layers, odm_cls_layers]
 
+def concat_preds(loc_preds_layers, cls_preds_layers, mode):
+    loc_preds_layers_m = []
+    cls_preds_layers_m = []
+    for ii, (loc_preds,cls_preds) in enumerate(zip(loc_preds_layers, cls_preds_layers)):
+        lshape = loc_preds.get_shape().as_list()
+        cshape = cls_preds.get_shape().as_list()
+        num_anchors = lshape[-1]//4
+        num_classes = cshape[-1]//num_anchors
+        loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
+        cls_pred = tf.reshape(loc_pred,[-1,cshape[1]*cshape[2]*num_anchors,num_classes])
+        loc_preds_layers_m.append(loc_pred)
+    loc_preds = tf.concat(loc_preds_layers_m,
+                          axis=1, name="{}_multibox_loc".format(mode))
+    print('loc preds after concat:',loc_preds.get_shape().as_list())
+    cls_preds = tf.concat(cls_preds_layers, axis=1, name="{}_multibox_cls".format(mode))
+    # cls_preds = tf.transpose(cls_preds, perm=(0, 2, 1),)
+    print('cls preds after concat:',cls_preds.get_shape().as_list())
+    return loc_preds, cls_preds
 # ================================================================================
 def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, scope=None):
         """Encode labels and bounding boxes.
