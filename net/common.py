@@ -422,7 +422,7 @@ def ssd_anchor_match_layer(gtlabels,
         # yref = yref * anchor_scaling[1] * anchors_layer[3] + anchors_layer[1] 
         # wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
         # href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
-        coord_shape = (yref.shape[0], yref.shape[1], yref.shape[2], href.shape[3]) #(w,h,anchor_number)
+        coord_shape = xref.get_shape().as_list() #(batch,w,h,anchor_number)
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
     ymin = yref - href / 2.
     xmin = xref - wref / 2.
