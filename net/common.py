@@ -222,9 +222,10 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
     
     loc_preds = tf.concat(loc_layers,
                           axis=1, name="{}_multibox_loc".format(mode))
+    loc_preds = tf.reshape(loc_preds,[loc_preds.get_shape().as_list()[0],-1,4])
     print('loc preds after concat:',loc_preds.get_shape().as_list())
     cls_preds = tf.concat(cls_layers, axis=1)
-    cls_preds = tf.reshape(cls_preds, shape=[0, -1, num_classes])
+    cls_preds = tf.reshape(cls_preds, shape=[cls_preds.get_shape().as_list()[0], -1, num_classes])
     cls_preds = tf.transpose(cls_preds, perm=(0, 2, 1), name="{}_multibox_cls".format(mode))
     print('cls preds after concat:',cls_preds.get_shape().as_list())
     return [loc_preds, cls_preds]
