@@ -187,10 +187,10 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         from_name = from_layer.name
         # Add intermediate layers.
         if interm_layer_channel > 0:
-            from_layer = tf.layers.conv3d(from_layer, interm_layer_channel, kernel_size=[3, 3, 3], strides=[
-                                          1, 1, 1], padding="same", data_format='channels_last', name="{}_inter_conv".format(from_name))
+            from_layer = tf.layers.conv2d(from_layer, interm_layer_channel, kernel_size=3, strides=1, 
+                            padding="same", data_format='channels_last', name="{}_inter_conv".format(from_name).replace(':','_'))
             from_layer = tf.nn.relu(
-                from_layer, name="{}_inter_relu".format(from_name))
+                from_layer, name="{}_inter_relu".format(from_name).replace(':','_'))
 
         # estimate number of anchors per location
         size = sizes[k]
@@ -204,6 +204,7 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         loc_pred = tf.layers.conv2d(from_layer, num_loc_pred, kernel_size=3, strides=1,
                  padding="same", data_format='channels_last', name="{}_loc_conv".format(from_name).replace(':','_'))
         loc_pred = tf.transpose(loc_pred, perm=(0, 2, 3, 1))
+        print('layer [',k,'] loc pred:',loc_pred.get_shape().as_list())
         loc_pred = tf.layers.flatten(loc_pred)
         loc_layers.append(loc_pred)
 
@@ -557,7 +558,6 @@ def ssd_anchor_match(labels,
         target_localizations = []
         target_scores = []
         for i, anchors_layer in enumerate(anchors):
-            print(i,'anchor href:', anchors_layer[-1].shape)
             with tf.name_scope('bboxes_encode_block_%i' % i):
                 t_labels, t_loc, t_scores = \
                     ssd_anchor_match_layer(labels, bboxes, anchors_layer,
