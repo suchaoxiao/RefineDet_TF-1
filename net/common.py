@@ -494,7 +494,7 @@ def ssd_anchor_match_layer(gtlabels,
         # Jaccard score.
         label = tf.expand_dims(tf.expand_dims(gtlabels[:,i],-1),-1) #(batch,)
         bbox = tf.expand_dims(tf.expand_dims(gtboxes[:,i,:],axis=1),axis=1)# (batch,1,1,4)
-        print('bbox:',bbox.get_shape().as_list())
+        print('label:',label.get_shape().as_list())
         jaccard = jaccard_with_anchors(bbox) # IOU ((batch), feat_w, feat_h, anchor_num)
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
@@ -543,6 +543,7 @@ def ssd_anchor_match_layer(gtlabels,
     feat_w = tf.log(feat_w / wref) / anchor_scaling[3]
     # Use SSD ordering: x / y / w / h instead of ours.
     feat_localizations = tf.stack([feat_cx, feat_cy, feat_w, feat_h], axis=-1)
+    print('feat_scores:',feat_scores.get_shape().as_list())
     print('feat_labels:',feat_labels.get_shape().as_list())
     return feat_labels, feat_localizations, feat_scores
 
