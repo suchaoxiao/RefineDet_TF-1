@@ -125,7 +125,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 fnmask = tf.cast(nmask, dtype)
 
                 print('cls_pred:', cls_pred.get_shape().as_list())
-                print('nmask:', nmask.get_shape().as_list())
+                print('anchor_label:', anchor_label.get_shape().as_list())
                 # Add cross-entropy loss.
                 with tf.name_scope('cross_entropy_pos'):
                     # sparse loss accept label with 0-N rather than one-hot vectors
