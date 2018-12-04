@@ -17,7 +17,7 @@ def abs_smooth(x):
 
 
 def arm_losses(cls_preds_layers, loc_preds_layers,
-           gclasses, glocalisations, gscores,
+           anchor_labels, anchor_locs, anchor_scores,
            match_threshold=0.5,
            negative_ratio=3.,
            alpha=1.,
@@ -29,7 +29,7 @@ def arm_losses(cls_preds_layers, loc_preds_layers,
     gclasses = [tf.where(tf.greater(gclasses[i],0),tf.ones_like(gclasses[i]),gclasses[i])\
                  for i in range(len(cls_preds_layers))]
     return generate_losses(cls_preds_layers, loc_preds_layers,
-                      gclasses, glocalisations, gscores,
+                      anchor_labels, anchor_locs, anchor_scores,
                       match_threshold=match_threshold,
                       negative_ratio=negative_ratio,
                       alpha=alpha,
@@ -37,7 +37,7 @@ def arm_losses(cls_preds_layers, loc_preds_layers,
                       scope=scope)
 
 def odm_losses(cls_preds_layers, loc_preds_layers,
-           gclasses, glocalisations, gscores,
+           anchor_labels, anchor_locs, anchor_scores,
            match_threshold=0.5,
            negative_ratio=3.,
            alpha=1.,
@@ -46,7 +46,7 @@ def odm_losses(cls_preds_layers, loc_preds_layers,
     """Define the SSD network losses.
     """
     return generate_losses(cls_preds_layers, loc_preds_layers,
-                      gclasses, glocalisations, gscores,
+                      anchor_labels, anchor_locs, anchor_scores,
                       match_threshold=match_threshold,
                       negative_ratio=negative_ratio,
                       alpha=alpha,
@@ -54,7 +54,7 @@ def odm_losses(cls_preds_layers, loc_preds_layers,
                       scope=scope)
 
 def generate_losses(cls_preds_layers, loc_preds_layers,
-               gclasses, glocalisations, gscores,
+               anchor_labels, anchor_locs, anchor_scores,
                match_threshold=0.5,
                negative_ratio=3.,
                alpha=1.,
@@ -66,8 +66,8 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
     adds them to the TF loss collection.
 
     Arguments:
-      logits: (list of) predictions logits Tensors;
-      localisations: (list of) localisations Tensors;
+      logits: (list of) predictions logits Tensors; (feat_w,feat_h,num_anchors)
+      localisations: (list of) localisations Tensors; (feat_w,feat_h,num_anchors*4)
       gclasses: (list of) groundtruth labels Tensors; - in batch
       glocalisations: (list of) groundtruth localisations Tensors;
       gscores: (list of) groundtruth score Tensors;
@@ -84,11 +84,15 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
             num_classes = cshape[-1]//num_anchors
             loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
             cls_pred = tf.reshape(cls_pred,[-1,cshape[1]*cshape[2]*num_anchors,num_classes])
+            
+            anchor_label = anchor_labels[ii]
+            anchor_loc = anchor_locs[ii]
+            anchor_score = anchor_scores[ii]
             with tf.name_scope('block_%i' % ii):
                 # Determine weights Tensor.
-                pmask = gscores[ii] > match_threshold
-                print('gscores['+str(ii)+']:', gscores[ii])
-                print('gloc['+str(ii)+']:', glocalisations[ii])
+                pmask = anchor_score > match_threshold # 
+                print('gscores['+str(ii)+']:', anchor_score) 
+                print('gloc['+str(ii)+']:', anchor_loc)
                 fpmask = tf.cast(pmask, dtype)
                 n_positives = tf.reduce_sum(fpmask)
 
@@ -100,10 +104,11 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 # Negative mask.
                 no_classes = tf.cast(pmask, tf.int32)
                 predictions = tf.nn.softmax(cls_pred)
-                print('predictions:', predictions.get_shape().as_list())
                 nmask = tf.logical_and(tf.logical_not(pmask),
-                                       gscores[ii] > -0.5)
+                                       anchor_score > -0.5)
                 fnmask = tf.cast(nmask, dtype)
+                print('predictions:', predictions.get_shape().as_list())
+                print('nmask:', nmask.get_shape().as_list())
                 nvalues = tf.where(nmask,
                                    predictions[:, :, :, :, 0],
                                    1. - fnmask)
@@ -125,7 +130,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 with tf.name_scope('cross_entropy_pos'):
                     # sparse loss accept label with 0-N rather than one-hot vectors
                     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=cls_pred, 
-                                                                          labels=gclasses[ii])
+                                                                          labels=anchor_label)
                     loss = tf.losses.compute_weighted_loss(loss, fpmask)
                     l_cross_pos.append(loss)
 
@@ -140,7 +145,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                     # Weights Tensor: positive mask + random negative.
                     weights = tf.expand_dims(alpha * fpmask, axis=-1)
                     loss = abs_smooth(
-                        loc_pred - glocalisations[ii])
+                        loc_pred - anchor_loc) # 
                     loss = tf.losses.compute_weighted_loss(loss, weights)
                     l_loc.append(loss)
 
