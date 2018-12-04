@@ -68,9 +68,9 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
     Arguments:
       logits: (list of) predictions logits Tensors; (feat_w,feat_h,num_anchors)
       localisations: (list of) localisations Tensors; (feat_w,feat_h,num_anchors,4)
-      gclasses: (list of) groundtruth labels Tensors; - in batch
-      glocalisations: (list of) groundtruth localisations Tensors;
-      gscores: (list of) groundtruth score Tensors;
+      anchor_labels: (list of) groundtruth labels Tensors; - in batch
+      anchor_locs: (list of) groundtruth localisations Tensors;
+      anchor_scores: (list of) groundtruth score Tensors;
     """
     with tf.name_scope(scope, 'losses'):
         l_cross_pos = []
@@ -107,8 +107,6 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 nmask = tf.logical_and(tf.logical_not(pmask),
                                        anchor_score > -0.5)
                 fnmask = tf.cast(nmask, dtype)
-                print('predictions:', predictions.get_shape().as_list())
-                print('nmask:', nmask.get_shape().as_list())
                 nvalues = tf.where(nmask,
                                    tf.squeeze(predictions[:, :, :, :, 0]),
                                    1. - fnmask)
@@ -126,6 +124,8 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 nmask = tf.logical_and(nmask, -nvalues > minval)
                 fnmask = tf.cast(nmask, dtype)
 
+                print('cls_pred:', cls_pred.get_shape().as_list())
+                print('nmask:', nmask.get_shape().as_list())
                 # Add cross-entropy loss.
                 with tf.name_scope('cross_entropy_pos'):
                     # sparse loss accept label with 0-N rather than one-hot vectors
