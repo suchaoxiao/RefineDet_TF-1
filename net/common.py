@@ -488,8 +488,8 @@ def ssd_anchor_match_layer(gtlabels,
           - only update if beat the score of other bboxes.
         """
         # Jaccard score.
-        label = tf.squeeze(gtlabels[:,i]) #(batch,)
-        bbox = tf.squeeze(gtboxes[:,i,:]) # (batch,4)
+        label = tf.reshape(gtlabels[:,i],[-1,]) #(batch,)
+        bbox = tf.reshape(gtboxes[:,i,:],[-1,-1]) # (batch,4)
         jaccard = jaccard_with_anchors(bbox) # IOU ((batch), feat_w, feat_h, anchor_num)
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
