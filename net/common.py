@@ -456,7 +456,7 @@ def ssd_anchor_match_layer(gtlabels,
         # Volumes.
         inter_vol = h * w
         union_vol = vol_anchors - inter_vol \
-            + (bbox[:,2] - bbox[:,0]) * (bbox[:,3] - bbox[:,1])
+            + (bbox[:,:,:,2] - bbox[:,:,:,0]) * (bbox[:,:,:,3] - bbox[:,:,:,1])
         jaccard = tf.div(inter_vol, union_vol)
         return jaccard # ((batch), feat_w, feat_h, anchor_num)
 
