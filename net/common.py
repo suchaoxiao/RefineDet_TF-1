@@ -418,6 +418,10 @@ def ssd_anchor_match_layer(gtlabels,
         xref, yref, wref, href = anchors_layer
         coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
         feat_labels = tf.expand_dims(tf.zeros(coord_shape, dtype=dtype),axis=0)
+        ymin = np.expand_dims(yref - href / 2.,axis=0) # (1,feat_w,feat_h,anchor_num)
+        xmin = np.expand_dims(xref - wref / 2.,axis=0)
+        ymax = np.expand_dims(yref + href / 2.,axis=0)
+        xmax = np.expand_dims(xref + wref / 2.,axis=0)
     elif anchor_for == 'odm':
         xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
         # xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]
@@ -426,11 +430,11 @@ def ssd_anchor_match_layer(gtlabels,
         # href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
         feat_labels = tf.zeros_like(xref)
         coord_shape = xref.get_shape().as_list() #(batch,w,h,anchor_number)
+        ymin = yref - href / 2.
+        xmin = xref - wref / 2.
+        ymax = yref + href / 2.
+        xmax = xref + wref / 2.
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
-    ymin = yref - href / 2. # ((batch),feat_w,feat_h,anchor_num)
-    xmin = xref - wref / 2.
-    ymax = yref + href / 2.
-    xmax = xref + wref / 2.
     vol_anchors = (xmax - xmin) * (ymax - ymin)
     # Initialize tensors...
     feat_scores = tf.zeros_like(feat_labels)
@@ -443,10 +447,10 @@ def ssd_anchor_match_layer(gtlabels,
     def jaccard_with_anchors(bbox): # IOU
         """Compute jaccard score between a box and the anchors.
         """
-        int_ymin = tf.maximum(ymin, bbox[:,0])
-        int_xmin = tf.maximum(xmin, bbox[:,1])
-        int_ymax = tf.minimum(ymax, bbox[:,2])
-        int_xmax = tf.minimum(xmax, bbox[:,3])
+        int_ymin = tf.maximum(ymin, bbox[:,:,:,0]) # ((1 or batch,feat_w,feat_h,anchor_num), (batch,1,1,1))
+        int_xmin = tf.maximum(xmin, bbox[:,:,:,1])
+        int_ymax = tf.minimum(ymax, bbox[:,:,:,2])
+        int_xmax = tf.minimum(xmax, bbox[:,:,:,3])
         h = tf.maximum(int_ymax - int_ymin, 0.)
         w = tf.maximum(int_xmax - int_xmin, 0.)
         # Volumes.
@@ -490,7 +494,7 @@ def ssd_anchor_match_layer(gtlabels,
         """
         # Jaccard score.
         label = tf.reshape(gtlabels[:,i],[-1,]) #(batch,)
-        bbox = tf.reshape(gtboxes[:,i,:],[-1,-1]) # (batch,4)
+        bbox = tf.expand_dims(gtboxes[:,i,:],axis=2) # (batch,1,1,4)
         jaccard = jaccard_with_anchors(bbox) # IOU ((batch), feat_w, feat_h, anchor_num)
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
@@ -505,10 +509,10 @@ def ssd_anchor_match_layer(gtlabels,
         # replace values in feat_scores with jaccard according to mask
         feat_scores = tf.where(mask, jaccard, feat_scores) 
 
-        feat_ymin = fmask * bbox[0] + (1 - fmask) * feat_ymin
-        feat_xmin = fmask * bbox[1] + (1 - fmask) * feat_xmin
-        feat_ymax = fmask * bbox[2] + (1 - fmask) * feat_ymax
-        feat_xmax = fmask * bbox[3] + (1 - fmask) * feat_xmax
+        feat_ymin = fmask * bbox[:,:,:,0] + (1 - fmask) * feat_ymin
+        feat_xmin = fmask * bbox[:,:,:,1] + (1 - fmask) * feat_xmin
+        feat_ymax = fmask * bbox[:,:,:,2] + (1 - fmask) * feat_ymax
+        feat_xmax = fmask * bbox[:,:,:,3] + (1 - fmask) * feat_xmax
 
         # Check no annotation label: ignore these anchors...
         # interscts = intersection_with_anchors(bbox)
