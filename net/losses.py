@@ -109,9 +109,8 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 fnmask = tf.cast(nmask, dtype)
                 print('predictions:', predictions.get_shape().as_list())
                 print('nmask:', nmask.get_shape().as_list())
-                pred_shape = predictions.get_shape().as_list()
                 nvalues = tf.where(nmask,
-                                   tf.reshape(predictions[:, :, :, :, 0],pred_shape[:-1]),
+                                   tf.squeeze(predictions[:, :, :, :, 0]),
                                    1. - fnmask)
                 nvalues_flat = tf.reshape(nvalues, [-1])
                 # Number of negative entries to select.
