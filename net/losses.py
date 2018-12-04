@@ -26,7 +26,7 @@ def arm_losses(cls_preds_layers, loc_preds_layers,
     """Define the SSD network losses.
     """
     # since we only predict foreground/background, we convert all positive labels to 1
-    gclasses = [tf.where(tf.greater(gclasses[i],0),tf.ones_like(gclasses[i]),gclasses[i])\
+    anchor_labels = [tf.where(tf.greater(anchor_labels[i],0),tf.ones_like(anchor_labels[i]),anchor_labels[i])\
                  for i in range(len(cls_preds_layers))]
     return generate_losses(cls_preds_layers, loc_preds_layers,
                       anchor_labels, anchor_locs, anchor_scores,
