@@ -426,7 +426,7 @@ def ssd_anchor_match_layer(gtlabels,
         feat_labels = tf.zeros_like(xref)
         coord_shape = xref.get_shape().as_list() #(batch,w,h,anchor_number)
     else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
-    ymin = yref - href / 2.
+    ymin = yref - href / 2. # ((batch),feat_w,feat_h,anchor_num)
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
     xmax = xref + wref / 2.
@@ -453,7 +453,7 @@ def ssd_anchor_match_layer(gtlabels,
         union_vol = vol_anchors - inter_vol \
             + (bbox[:,2] - bbox[:,0]) * (bbox[:,3] - bbox[:,1])
         jaccard = tf.div(inter_vol, union_vol)
-        return jaccard
+        return jaccard # ((batch), feat_w, feat_h, anchor_num)
 
     def intersection_with_anchors(bbox):
         """Compute intersection score between a gbox and the anchors.
@@ -488,9 +488,9 @@ def ssd_anchor_match_layer(gtlabels,
           - only update if beat the score of other bboxes.
         """
         # Jaccard score.
-        label = tf.reshape(gtlabels[:,i],[-1,])
-        bbox = tf.reshape(gtboxes[:,i,:],[-1,-1])
-        jaccard = jaccard_with_anchors(bbox) # IOU
+        label = tf.reshape(gtlabels[:,i],[-1,]) #(batch,)
+        bbox = tf.reshape(gtboxes[:,i,:],[-1,-1]) # (batch,4)
+        jaccard = jaccard_with_anchors(bbox) # IOU ((batch), feat_w, feat_h, anchor_num)
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))

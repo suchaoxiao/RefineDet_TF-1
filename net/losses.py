@@ -67,7 +67,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
 
     Arguments:
       logits: (list of) predictions logits Tensors; (feat_w,feat_h,num_anchors)
-      localisations: (list of) localisations Tensors; (feat_w,feat_h,num_anchors*4)
+      localisations: (list of) localisations Tensors; (feat_w,feat_h,num_anchors,4)
       gclasses: (list of) groundtruth labels Tensors; - in batch
       glocalisations: (list of) groundtruth localisations Tensors;
       gscores: (list of) groundtruth score Tensors;
@@ -83,14 +83,14 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
             num_anchors = lshape[-1]//4
             num_classes = cshape[-1]//num_anchors
             loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
-            cls_pred = tf.reshape(cls_pred,[-1,cshape[1]*cshape[2]*num_anchors,num_classes])
+            cls_pred = tf.reshape(cls_pred,[-1,cshape[1],cshape[2],num_anchors,num_classes])
             
             anchor_label = anchor_labels[ii]
             anchor_loc = anchor_locs[ii]
             anchor_score = anchor_scores[ii]
             with tf.name_scope('block_%i' % ii):
                 # Determine weights Tensor.
-                pmask = anchor_score > match_threshold # 
+                pmask = anchor_score > match_threshold # ((batch), feat_w, feat_h, anchor_num) 
                 print('gscores['+str(ii)+']:', anchor_score) 
                 print('gloc['+str(ii)+']:', anchor_loc)
                 fpmask = tf.cast(pmask, dtype)
@@ -110,7 +110,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 print('predictions:', predictions.get_shape().as_list())
                 print('nmask:', nmask.get_shape().as_list())
                 nvalues = tf.where(nmask,
-                                   predictions[:, :, :, :, 0],
+                                   tf.reshape(predictions[:, :, :, :, 0],(-1,-1,-1,-1)),
                                    1. - fnmask)
                 nvalues_flat = tf.reshape(nvalues, [-1])
                 # Number of negative entries to select.
