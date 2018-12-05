@@ -51,7 +51,6 @@ def deconv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=2, paddi
     return deconv
 
 def tcb_module(conv, deconv, num_filter, level=1):
-    # print('conv shape', conv.get_shape().as_list(), 'deconv shape', deconv.get_shape().as_list())
     deconv = deconv_act_layer(deconv, "tcb{}".format(
         level), num_filter, use_bn=False, kernel=2, padding="same", strides=2, data_format='channels_last', act_type=None)
     conv1 = conv_act_layer(conv, "tcb{}".format(level), num_filter, use_bn=False, kernel=3,
@@ -362,10 +361,8 @@ def concat_preds(loc_preds_layers, cls_preds_layers, mode):
         loc_preds_layers_m.append(loc_pred)
         cls_preds_layers_m.append(cls_pred)
     loc_preds = tf.concat(loc_preds_layers_m, axis=1, name="{}_multibox_loc".format(mode))
-    # print('loc preds after concat:',loc_preds.get_shape().as_list())
     cls_preds = tf.concat(cls_preds_layers_m, axis=1, name="{}_multibox_cls".format(mode))
     # cls_preds = tf.transpose(cls_preds, perm=(0, 2, 1),)
-    # print('cls preds after concat:',cls_preds.get_shape().as_list())
     return loc_preds, cls_preds
 # ================================================================================
 def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, scope=None):
@@ -672,8 +669,6 @@ def odm_anchor_match_layer(gtlabels, gtboxes,
     feat_w = tf.log(feat_w / wref) / anchor_scaling[3]
     # Use SSD ordering: x / y / w / h instead of ours.
     feat_localizations = tf.stack([feat_cx, feat_cy, feat_w, feat_h], axis=-1)
-    print('feat_scores:',feat_scores.get_shape().as_list())
-    print('feat_labels:',feat_labels.get_shape().as_list())
     return feat_labels, feat_localizations, feat_scores
 
 def ssd_anchor_match(labels,
@@ -731,7 +726,6 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     aloc_shape = arm_loc_preds.get_shape().as_list()
     print('arm_loc_preds:',aloc_shape)
     xref, yref, wref, href = anchors_layer
-    print(xref.shape, yref.shape, wref.shape, href.shape)
     # batch_size = aloc_shape[0]
     # arm_anchor_boxes = tf.concat([arm_anchor_boxes_loc] * batch_size, axis=0)
 

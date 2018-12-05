@@ -85,7 +85,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
             loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
             cls_pred = tf.reshape(cls_pred,[-1,cshape[1],cshape[2],num_anchors,num_classes])
             
-            anchor_label = anchor_labels[ii]
+            anchor_label = tf.cast(anchor_labels[ii],tf.int32)
             anchor_loc = anchor_locs[ii]
             anchor_score = anchor_scores[ii]
             with tf.name_scope('block_%i' % ii):
