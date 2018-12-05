@@ -416,7 +416,7 @@ def ssd_anchor_match_layer(gtlabels,
     batch_size = tf.shape(gtboxes)[0]
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
-        coord_shape = tf.concat([batch_size,tf.constant([yref.shape[0], yref.shape[1], href.size])]) #(w,h,anchor_number)
+        coord_shape = tf.concat([batch_size,tf.constant([yref.shape[0], yref.shape[1], href.size])],0) #(w,h,anchor_number)
         feat_labels = tf.expand_dims(tf.zeros(coord_shape, dtype=dtype),axis=0)
         ymin = tf.reshape(yref - href / 2.,coord_shape) # (1,feat_w,feat_h,anchor_num)
         xmin = tf.reshape(xref - wref / 2.,coord_shape)
