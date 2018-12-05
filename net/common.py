@@ -383,7 +383,7 @@ def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, sco
             ignore_threshold=0.5,
             scope=scope)
 
-def arm_anchor_match_layer(labels, bboxes,
+def arm_anchor_match_layer(gtlabels, gtboxes,
                                anchors_layer,
                                num_classes,
                                no_annotation_label,
@@ -406,6 +406,8 @@ def arm_anchor_match_layer(labels, bboxes,
       target_localizations: [feat_w, feat_h, num_anchors, 4 coords]
       target_scores: same as labels
     """
+    gtboxes = tf.cast(gtboxes, dtype)
+    gtlabels = tf.cast(gtlabels, dtype)
     # Anchors coordinates and volume.
     yref, xref, href, wref = anchors_layer # yref/xref:[feat_w,feat_h,1],href/wref:[num_anchors,]
     ymin = yref - href / 2. # [feat_w,feat_h,num_anchors]
@@ -457,7 +459,7 @@ def arm_anchor_match_layer(labels, bboxes,
                   feat_ymin, feat_xmin, feat_ymax, feat_xmax):
         """Condition: check label index.
         """
-        r = tf.less(i, tf.shape(labels))
+        r = tf.less(i, tf.shape(gtlabels))
         return r[0]
 
     def body(i, feat_labels, feat_scores,
@@ -472,8 +474,8 @@ def arm_anchor_match_layer(labels, bboxes,
           - assign values when jaccard > 0.5;
           - only update if beat the score of other bboxes.
         """
-        label = labels[i]
-        bbox = bboxes[i]
+        label = gtlabels[i]
+        bbox = gtboxes[i]
         jaccard = jaccard_with_anchors(bbox) # IOU
         ### Mask: check threshold + scores + no annotations + num_classes.
         ## check if the IOU is larger than former IOU of another GT box
