@@ -181,7 +181,7 @@ class Refine_det(object):
         # filtered_anchors = neg_filter.filter_out(arm_cls, odm_cls, odm_loc_target_mask)
         arm_cls_loss, arm_loc_loss = losses.arm_losses(arm_cls_layers,arm_loc_layers,arm_anchor_labels, arm_anchor_loc, arm_anchor_scores)
         odm_cls_loss, odm_loc_loss = losses.odm_losses(odm_cls_layers,odm_loc_layers,odm_anchor_labels, odm_anchor_loc, odm_anchor_scores)
-        return tf.add_n([arm_cls_loss, arm_loc_loss, odm_cls_loss, odm_loc_loss]), end_points
+        return tf.add_n([arm_cls_loss, arm_loc_loss, odm_cls_loss, odm_loc_loss])
 
     def detect_bboxes(self, predictions, localisations,
                         select_threshold=None, nms_threshold=0.5,
