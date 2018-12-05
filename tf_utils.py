@@ -58,6 +58,7 @@ def reshape_list(l, shape=None):
 # =========================================================================== #
 # Training utils.
 # =========================================================================== #
+'''
 def print_configuration(flags, ssd_params, data_sources, save_dir=None):
     """Print the training configuration.
     """
@@ -87,7 +88,7 @@ def print_configuration(flags, ssd_params, data_sources, save_dir=None):
         path = os.path.join(save_dir, 'training_config.txt')
         with open(path, "w") as out:
             print_config(out)
-
+'''
 
 def configure_learning_rate(flags, num_samples_per_epoch, global_step):
     """Configures the learning rate.
