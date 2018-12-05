@@ -82,7 +82,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
             cshape = cls_pred.get_shape().as_list()
             num_anchors = lshape[-1]//4
             num_classes = cshape[-1]//num_anchors
-            loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
+            # loc_pred = tf.reshape(loc_pred,[-1,lshape[1]*lshape[2]*num_anchors,4])
             cls_pred = tf.reshape(cls_pred,[-1,cshape[1],cshape[2],num_anchors,num_classes])
             
             anchor_label = tf.cast(anchor_labels[ii],tf.int32)
@@ -124,8 +124,6 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                 nmask = tf.logical_and(nmask, -nvalues > minval)
                 fnmask = tf.cast(nmask, dtype)
 
-                print('cls_pred:', cls_pred.get_shape().as_list())
-                print('anchor_label:', anchor_label.get_shape().as_list())
                 # Add cross-entropy loss.
                 with tf.name_scope('cross_entropy_pos'):
                     # sparse loss accept label with 0-N rather than one-hot vectors
@@ -140,6 +138,8 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                     loss = tf.losses.compute_weighted_loss(loss, fnmask)
                     l_cross_neg.append(loss)
 
+                print('loc_pred:', loc_pred.get_shape().as_list())
+                print('anchor_loc:', anchor_label.get_shape().as_list())
                 # Add localization loss: smooth L1, L2, ...
                 with tf.name_scope('localization'):
                     # Weights Tensor: positive mask + random negative.
