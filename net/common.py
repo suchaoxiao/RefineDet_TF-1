@@ -416,7 +416,7 @@ def arm_anchor_match_layer(labels, bboxes,
 
     # Initialize tensors...
     shape = (yref.shape[0], yref.shape[1], href.size)
-    feat_labels = tf.zeros(shape, dtype=tf.int64)
+    feat_labels = tf.zeros(shape, dtype=dtype)
     feat_scores = tf.zeros(shape, dtype=dtype)
 
     feat_ymin = tf.zeros(shape, dtype=dtype)
@@ -623,7 +623,6 @@ def odm_anchor_match_layer(gtlabels, gtboxes,
         # Jaccard score.
         label = tf.expand_dims(tf.expand_dims(gtlabels[:,i],-1),-1) #(batch,)
         bbox = tf.expand_dims(tf.expand_dims(gtboxes[:,i,:],axis=1),axis=1)# (batch,1,1,4)
-        print('label:',label.get_shape().as_list())
         jaccard = jaccard_with_anchors(bbox) # IOU ((batch), feat_w, feat_h, anchor_num)
         # Mask: check threshold + scores + no annotations + num_classes.
         mask = tf.greater(jaccard, feat_scores)
