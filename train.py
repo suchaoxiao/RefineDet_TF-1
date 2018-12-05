@@ -156,8 +156,8 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             train_op.extend(update_ops)
             train_op = tf.group(*train_op)
             predictions = {'score': tf.concat([p['score'] for p in tower_preds], axis=0),
-                           'classes': tf.concat([p['classes'] for p in tower_preds], axis=0),
-                           'bbox': tf.concat([p['classes'] for p in tower_preds], axis=0),
+                        #    'classes': tf.concat([p['classes'] for p in tower_preds], axis=0),
+                           'bbox': tf.concat([p['bbox'] for p in tower_preds], axis=0),
                            }
             rscores = predictions['score']
             rbboxes = predictions['bbox']
@@ -250,7 +250,7 @@ def _tower_fn(is_training, weight_decay, feature, label, data_format):
     net = model.get_model()  # unused config, getpbb
     end_points = net.model_func(image, is_training=is_training,
                             input_data_format='channels_last')
-    tower_loss = net.forward(end_points, [bbox,label],[arm_anchor_label, arm_anchor_loc, arm_anchor_scores])
+    tower_loss, end_points = net.forward(end_points, [bbox,label],[arm_anchor_label, arm_anchor_loc, arm_anchor_scores])
 
     model_params = tf.trainable_variables()
     reg_loss = weight_decay * tf.add_n( # regularization

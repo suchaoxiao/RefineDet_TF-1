@@ -202,6 +202,8 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
         num_loc_pred = num_anchors * 4
         loc_pred = tf.layers.conv2d(from_layer, num_loc_pred, kernel_size=3, strides=1,
                  padding="same", data_format='channels_last', name="{}_loc_conv".format(from_name).replace(':','_'))
+        loc_shape = loc_pred.get_shape().as_list()
+        loc_pred = tf.reshape(loc_pred,[-1]+loc_shape[1:3]+[num_anchors,4])
         # loc_pred = tf.transpose(loc_pred, perm=(0, 2, 3, 1))
         loc_layers.append(loc_pred)
 
@@ -211,6 +213,9 @@ def getpred(config, from_layers, num_classes, sizes, ratios, mode='arm', clip=Fa
                  padding="same", data_format='channels_last', name="{}_cls_conv".format(from_name).replace(':','_'))
         # cls_pred = tf.transpose(cls_pred, perm=(0, 2, 3, 1))
         # cls_pred = tf.layers.flatten(cls_pred)
+        cls_pred = tf.nn.softmax(cls_pred)
+        cls_shape = cls_pred.get_shape().as_list()
+        cls_pred = tf.reshape(cls_pred, [-1]+cls_shape[1:3]+[num_anchors,num_classes])
         cls_layers.append(cls_pred)
     
     return loc_layers, cls_layers
@@ -768,7 +773,7 @@ def refine_anchor(anchor_location_all_layers, loc_pred_all_layers):
     return refined_anchors
 
 # ==================================================================================
-def tf_ssd_bboxes_select_layer(predictions_layer, localizations_layer,
+def ssd_bboxes_select_layer(predictions_layer, localizations_layer,
                                select_threshold=None,
                                num_classes=21,
                                ignore_class=0,
@@ -811,7 +816,7 @@ def tf_ssd_bboxes_select_layer(predictions_layer, localizations_layer,
 
         return d_scores, d_bboxes
 
-def tf_ssd_bboxes_select(predictions_net, localizations_net,
+def ssd_bboxes_select(predictions_net, localizations_net,
                          select_threshold=None,
                          num_classes=21,
                          ignore_class=0,
@@ -833,7 +838,7 @@ def tf_ssd_bboxes_select(predictions_net, localizations_net,
         l_scores = []
         l_bboxes = []
         for i in range(len(predictions_net)):
-            scores, bboxes = tf_ssd_bboxes_select_layer(predictions_net[i],
+            scores, bboxes = ssd_bboxes_select_layer(predictions_net[i],
                                                         localizations_net[i],
                                                         select_threshold,
                                                         num_classes,

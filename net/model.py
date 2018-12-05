@@ -174,35 +174,17 @@ class Refine_det(object):
         #                                             anchor_boxes, self.config, anchor_for='arm')
         refined_anchors = common.refine_anchor(anchor_boxes, arm_loc_layers)
         end_points['refined_anchors'] = refined_anchors
-        # end_points['odm_loc'] = odm_loc
-        # end_points['odm_cls'] = odm_cls
+        
         odm_anchor_labels, odm_anchor_loc, odm_anchor_scores = \
                         common.anchor_match(gtlabels, gtboxes, refined_anchors, self.config, anchor_for='odm')
-        # filtered_anchors = neg_filter.filter_out(arm_cls, odm_cls, odm_loc_target_mask)
+        # make losses
         arm_cls_loss, arm_loc_loss = losses.arm_losses(arm_cls_layers,arm_loc_layers,arm_anchor_labels, arm_anchor_loc, arm_anchor_scores)
         odm_cls_loss, odm_loc_loss = losses.odm_losses(odm_cls_layers,odm_loc_layers,odm_anchor_labels, odm_anchor_loc, odm_anchor_scores)
-        return tf.add_n([arm_cls_loss, arm_loc_loss, odm_cls_loss, odm_loc_loss])
+        end_points['score'] = odm_cls_layers
+        end_points['bbox']  = odm_loc_layers
+        return tf.add_n([arm_cls_loss, arm_loc_loss, odm_cls_loss, odm_loc_loss]), end_points
 
-    def detect_bboxes(self, predictions, localisations,
-                        select_threshold=None, nms_threshold=0.5,
-                        clipping_bbox=None, top_k=400, keep_top_k=200):
-        """Get the detected bounding boxes from the SSD network output.
-        """
-        # Select top_k bboxes from predictions, and clip
-        rscores, rbboxes = \
-            common.tf_ssd_bboxes_select(predictions, localisations,
-                                            select_threshold=select_threshold,
-                                            num_classes=self.params.num_classes)
-        rscores, rbboxes = \
-            bboxes.bboxes_sort(rscores, rbboxes, top_k=top_k)
-        # Apply NMS algorithm.
-        rscores, rbboxes = \
-            bboxes.bboxes_nms_batch(rscores, rbboxes,
-                                 nms_threshold=nms_threshold,
-                                 keep_top_k=keep_top_k)
-        if clipping_bbox is not None:
-            rbboxes = bboxes.bboxes_clip(clipping_bbox, rbboxes)
-        return rscores, rbboxes
+    
 
 
 def get_model():

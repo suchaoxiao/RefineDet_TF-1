@@ -78,12 +78,6 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
         l_loc = []
         for ii, (loc_pred,cls_pred) in enumerate(zip(loc_preds_layers, cls_preds_layers)):
             dtype = cls_pred.dtype
-            lshape = loc_pred.get_shape().as_list()
-            cshape = cls_pred.get_shape().as_list()
-            num_anchors = lshape[-1]//4
-            num_classes = cshape[-1]//num_anchors
-            loc_pred = tf.reshape(loc_pred,[-1,lshape[1],lshape[2],num_anchors,4])
-            cls_pred = tf.reshape(cls_pred,[-1,cshape[1],cshape[2],num_anchors,num_classes])
             
             anchor_label = tf.cast(anchor_labels[ii],tf.int32)
             anchor_loc = anchor_locs[ii]
@@ -101,7 +95,7 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
 
                 # Negative mask.
                 no_classes = tf.cast(pmask, tf.int32)
-                predictions = tf.nn.softmax(cls_pred)
+                predictions = cls_pred
                 nmask = tf.logical_and(tf.logical_not(pmask),
                                        anchor_score > -0.5)
                 fnmask = tf.cast(nmask, dtype)

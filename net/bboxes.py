@@ -19,6 +19,7 @@ import tensorflow as tf
 
 from tf_extended import tensors as tfe_tensors
 from tf_extended import math as tfe_math
+from net import common
 
 
 # =========================================================================== #
@@ -506,3 +507,27 @@ def bboxes_intersection(bbox_ref, bboxes, name=None):
         bboxes_vol = (bboxes[2] - bboxes[0]) * (bboxes[3] - bboxes[1])
         scores = tfe_math.safe_divide(inter_vol, bboxes_vol, 'intersection')
         return scores
+
+
+
+
+def detect_bboxes(predictions, localisations, num_classes,
+                        select_threshold=None, nms_threshold=0.5,
+                        clipping_bbox=None, top_k=400, keep_top_k=200):
+        """Get the detected bounding boxes from the SSD network output.
+        """
+        # Select top_k bboxes from predictions, and clip
+        rscores, rbboxes = \
+            common.ssd_bboxes_select(predictions, localisations,
+                                            select_threshold=select_threshold,
+                                            num_classes=num_classes)
+        rscores, rbboxes = \
+            bboxes_sort(rscores, rbboxes, top_k=top_k)
+        # Apply NMS algorithm.
+        rscores, rbboxes = \
+            bboxes_nms_batch(rscores, rbboxes,
+                                 nms_threshold=nms_threshold,
+                                 keep_top_k=keep_top_k)
+        if clipping_bbox is not None:
+            rbboxes = bboxes_clip(clipping_bbox, rbboxes)
+        return rscores, rbboxes
