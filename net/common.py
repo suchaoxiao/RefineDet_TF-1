@@ -481,10 +481,9 @@ def arm_anchor_match_layer(labels, bboxes,
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
         mask = tf.logical_and(mask, feat_scores > -0.5) # ???
         mask = tf.logical_and(mask, label < num_classes) # ???
-        imask = tf.cast(mask, tf.int64)
         fmask = tf.cast(mask, dtype)
         # Update values using mask.
-        feat_labels = imask * label + (1 - imask) * feat_labels
+        feat_labels = fmask * label + (1 - fmask) * feat_labels
         feat_scores = tf.where(mask, jaccard, feat_scores)
 
         feat_ymin = fmask * bbox[0] + (1 - fmask) * feat_ymin
