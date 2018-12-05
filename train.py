@@ -26,6 +26,7 @@ from tf_extended import utils_func, metrics
 from config_training import configuration as config
 from datasets import dataset_factory
 from preprocess import preprocessing_factory
+import tf_utils
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -285,10 +286,12 @@ def input_fn(data_dir,
                                 batch_size, config['image_shape'],config['num_epoches'])
         
         iterator = dataset.make_one_shot_iterator()
-        image_batch, label_batch, coord_batch, arm_anchor_labels_batch,\
-            arm_anchor_loc_batch, arm_anchor_scores_batch = iterator.get_next()
+        batch_shape = [1,1,1] + [len(model.config['feat_shapes'])]*3
+        batch_pack = iterator.get_next()
 
         if num_shards <= 1:
+            image_batch, label_batch, coord_batch, arm_anchor_labels_batch, arm_anchor_loc_batch,\
+                arm_anchor_scores_batch = tf_utils.reshape_list(batch_pack,batch_shape)
             # No GPU available or only 1 GPU.
             return {'image': [image_batch], 'coord': [coord_batch], 'anchor_label':[arm_anchor_labels_batch],
                     'anchor_loc':[arm_anchor_loc_batch],'anchor_score':[arm_anchor_scores_batch]}, [label_batch]
@@ -297,23 +300,20 @@ def input_fn(data_dir,
         # dataset.batch(batch_size) can, in some cases, return fewer than batch_size
         # examples. This is because it does so only when repeating for a limited
         # number of epochs, but our dataset repeats forever.
-        image_batch = tf.unstack(image_batch, num=batch_size, axis=0)
-        label_batch = tf.unstack(label_batch, num=batch_size, axis=0)
-        coord_batch = tf.unstack(coord_batch, num=batch_size, axis=0)
-        feature_shards = [[] for i in range(num_shards)]
-        label_shards = [[] for i in range(num_shards)]
-        coord_shards = [[] for i in range(num_shards)]
+        batch_unstacked = [tf.unstack(data,num=batch_size,axis=0) for data in batch_pack]
+        all_shards = [[[] for i in range(num_shards)] for j in range(len(batch_unstacked))]
 
         for i in xrange(batch_size):
             idx = i % num_shards
-            feature_shards[idx].append(image_batch[i])
-            label_shards[idx].append(label_batch[i])
-            coord_shards[idx].append(coord_batch[i])
-        feature_shards = [tf.parallel_stack(x) for x in feature_shards]
-        label_shards = [tf.parallel_stack(x) for x in label_shards]
-        coord_shards = [tf.parallel_stack(x) for x in coord_shards]
+            for j,shards in enumerate(all_shards):
+                shards[idx].append(batch_unstacked[j][i])
+        
+        all_feature_shards = [[tf.parallel_stack(x) for x in shards] for shards in all_shards]
+        image_shards, label_shards, coord_shards, anchor_label_shards, anchor_loc_shards, \
+            anchor_score_shards = tf_utils.reshape_list(all_feature_shards,batch_shape)
 
-        return {'image': feature_shards, 'coord': coord_shards}, label_shards
+        return {'image': image_shards, 'coord': coord_shards,'anchor_label':anchor_label_shards,
+                'anchor_loc':anchor_loc_shards,'anchor_score':anchor_score_shards}, label_shards
 
 
 def get_experiment_fn(data_dir,
