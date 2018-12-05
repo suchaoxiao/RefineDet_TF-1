@@ -150,7 +150,7 @@ class Refine_det(object):
         return end_points
     
     def get_prematched_anchors(self, image_shape, gtlabels, gtboxes):
-        anchor_boxes = common.ssd_anchors_all_layers(image_shape,config['feat_shape'],
+        anchor_boxes = common.ssd_anchors_all_layers(image_shape,config['feat_shapes'],
                            config['anchor_sizes'], config['anchor_ratios'],
                            config['anchor_steps'], offset=0.5, dtype=np.float32)
         arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
