@@ -77,8 +77,9 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                     with tf.device(device_setter):
                         loss, gradvars, preds = _tower_fn(
                             is_training, weight_decay,
-                            [tower_features['image'][i],
-                                tower_features['coord'][i]],
+                            [tower_features['image'][i], tower_features['coord'][i],
+                            tower_features['anchor_label'][i],tower_features['anchor_loc'][i],
+                            tower_features['anchor_score'][i]],
                             tower_labels[i], data_format)
                         tower_losses.append(loss)
                         tower_gradvars.append(gradvars)
