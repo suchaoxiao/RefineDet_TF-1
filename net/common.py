@@ -483,6 +483,9 @@ def arm_anchor_match_layer(labels, bboxes,
         mask = tf.logical_and(mask, label < num_classes) # ???
         fmask = tf.cast(mask, dtype)
         # Update values using mask.
+        print('fmask:',fmask)
+        print('label',label)
+        print('feat_labels',feat_labels)
         feat_labels = fmask * label + (1 - fmask) * feat_labels
         feat_scores = tf.where(mask, jaccard, feat_scores)
 
