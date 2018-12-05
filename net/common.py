@@ -711,7 +711,6 @@ def ssd_anchor_match(labels,
                 t_labels, t_loc, t_scores = \
                     match_fn(labels, bboxes, anchors_layer,
                                         num_classes, no_annotation_label,
-                                        anchor_for,
                                         ignore_threshold,
                                         anchor_scaling, dtype)
                 target_labels.append(t_labels)
