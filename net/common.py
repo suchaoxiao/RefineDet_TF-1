@@ -413,14 +413,16 @@ def ssd_anchor_match_layer(gtlabels,
     # Anchors coordinates and volume.
     gtboxes = tf.cast(gtboxes, dtype)
     gtlabels = tf.cast(gtlabels, dtype)
+    batch_size = tf.shape(gtboxes)[0]
     if anchor_for == 'arm':
         xref, yref, wref, href = anchors_layer
         coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
         feat_labels = tf.expand_dims(tf.zeros(coord_shape, dtype=dtype),axis=0)
-        ymin = np.expand_dims(yref - href / 2.,axis=0) # (1,feat_w,feat_h,anchor_num)
-        xmin = np.expand_dims(xref - wref / 2.,axis=0)
-        ymax = np.expand_dims(yref + href / 2.,axis=0)
-        xmax = np.expand_dims(xref + wref / 2.,axis=0)
+        # 这里broadcast第一维还是失败的，想办法
+        ymin = tf.reshape(yref - href / 2.,tf.concat(batch_size,ymin.shape)) # (1,feat_w,feat_h,anchor_num)
+        xmin = tf.reshape(xref - wref / 2.,tf.concat(batch_size,ymin.shape))
+        ymax = tf.reshape(yref + href / 2.,tf.concat(batch_size,ymin.shape))
+        xmax = tf.reshape(xref + wref / 2.,tf.concat(batch_size,ymin.shape))
     elif anchor_for == 'odm':
         xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
         # xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]

@@ -150,16 +150,16 @@ class Refine_det(object):
     
     def forward(self, end_points, ground_truths):
         gtboxes, gtlabels = ground_truths
-        from_layers = []
+        self.from_layers = []
         for name in self.ARM_LAYERS:
-            from_layers.append(end_points[name])
+            self.from_layers.append(end_points[name])
         # get output of ARM and ODM
         arm_loc_layers, arm_cls_layers, odm_loc_layers, odm_cls_layers = multibox_layer(
-            config, from_layers, num_classes=self.num_classes, clip=False)
+            config, self.from_layers, num_classes=self.num_classes, clip=False)
         # arm_loc, arm_cls = common.concat_preds(arm_loc_layers, arm_cls_layers, 'arm')
         # odm_loc, odm_cls = common.concat_preds(odm_loc_layers, odm_cls_layers, 'odm')
 
-        anchor_boxes = common.get_anchors(config, from_layers)
+        anchor_boxes = common.get_anchors(config, self.from_layers)
         arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
                                                     anchor_boxes, self.config, anchor_for='arm')
         refined_anchors = common.refine_anchor(anchor_boxes, arm_loc_layers)

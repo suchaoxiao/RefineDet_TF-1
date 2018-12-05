@@ -9,7 +9,7 @@ dataset_name = 'pascalvoc_2007'
 # iterator = dataset.make_one_shot_iterator()
 # image_batch, label_batch, coord_batch = iterator.get_next()
 a = tf.ones([1,32,32,4])
-b = tf.ones([8,1,1,1])
+b = tf.ones([None,1,1,1])
 a = tf.maximum(a,b)
 
 
