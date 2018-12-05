@@ -91,8 +91,6 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
             with tf.name_scope('block_%i' % ii):
                 # Determine weights Tensor.
                 pmask = anchor_score > match_threshold # ((batch), feat_w, feat_h, anchor_num) 
-                print('gscores['+str(ii)+']:', anchor_score) 
-                print('gloc['+str(ii)+']:', anchor_loc)
                 fpmask = tf.cast(pmask, dtype)
                 n_positives = tf.reduce_sum(fpmask)
 
@@ -138,8 +136,6 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
                     loss = tf.losses.compute_weighted_loss(loss, fnmask)
                     l_cross_neg.append(loss)
 
-                print('loc_pred:', loc_pred.get_shape().as_list())
-                print('anchor_loc:', anchor_label.get_shape().as_list())
                 # Add localization loss: smooth L1, L2, ...
                 with tf.name_scope('localization'):
                     # Weights Tensor: positive mask + random negative.
@@ -156,6 +152,8 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
             total_cross = tf.add(
                 total_cross_pos, total_cross_neg, 'cross_entropy')
             total_loc = tf.add_n(l_loc, 'localization')
+        print('total_cross:',total_cross)
+        print('total_loc:',total_loc)
         return total_cross, total_loc
             # Add to EXTRA LOSSES TF.collection
             # tf.add_to_collection('EXTRA_LOSSES', total_cross_pos)
