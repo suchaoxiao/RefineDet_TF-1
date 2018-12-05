@@ -418,7 +418,6 @@ def ssd_anchor_match_layer(gtlabels,
         xref, yref, wref, href = anchors_layer
         coord_shape = (yref.shape[0], yref.shape[1], href.size) #(w,h,anchor_number)
         feat_labels = tf.expand_dims(tf.zeros(coord_shape, dtype=dtype),axis=0)
-        # 这里broadcast第一维还是失败的，想办法
         ymin = tf.reshape(yref - href / 2.,tf.concat(batch_size,ymin.shape)) # (1,feat_w,feat_h,anchor_num)
         xmin = tf.reshape(xref - wref / 2.,tf.concat(batch_size,ymin.shape))
         ymax = tf.reshape(yref + href / 2.,tf.concat(batch_size,ymin.shape))
