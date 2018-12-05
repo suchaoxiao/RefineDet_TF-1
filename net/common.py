@@ -383,12 +383,151 @@ def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, sco
             ignore_threshold=0.5,
             scope=scope)
 
-def ssd_anchor_match_layer(gtlabels,
-                            gtboxes,
+def arm_anchor_match_layer(labels, bboxes,
+                               anchors_layer,
+                               num_classes,
+                               no_annotation_label,
+                               ignore_threshold=0.5,
+                               prior_scaling=[0.1, 0.1, 0.2, 0.2],
+                               dtype=tf.float32):
+    """Encode groundtruth labels and bounding boxes using SSD anchors from
+    one layer.
+
+    Arguments:
+      labels: 1D Tensor(int64) containing groundtruth labels;
+      bboxes: Nx4 Tensor(float) with bboxes relative coordinates;
+      anchors_layer: Numpy array with layer anchors;
+      matching_threshold: Threshold for positive match with groundtruth bboxes;
+      prior_scaling: Scaling of encoded coordinates.
+
+    Return:
+      (target_labels, target_localizations, target_scores): Target Tensors.
+      target_labels: [feat_w, feat_h, num_anchors] Tensor
+      target_localizations: [feat_w, feat_h, num_anchors, 4 coords]
+      target_scores: same as labels
+    """
+    # Anchors coordinates and volume.
+    yref, xref, href, wref = anchors_layer # yref/xref:[feat_w,feat_h,1],href/wref:[num_anchors,]
+    ymin = yref - href / 2. # [feat_w,feat_h,num_anchors]
+    xmin = xref - wref / 2.
+    ymax = yref + href / 2.
+    xmax = xref + wref / 2.
+    vol_anchors = (xmax - xmin) * (ymax - ymin)
+
+    # Initialize tensors...
+    shape = (yref.shape[0], yref.shape[1], href.size)
+    feat_labels = tf.zeros(shape, dtype=tf.int64)
+    feat_scores = tf.zeros(shape, dtype=dtype)
+
+    feat_ymin = tf.zeros(shape, dtype=dtype)
+    feat_xmin = tf.zeros(shape, dtype=dtype)
+    feat_ymax = tf.ones(shape, dtype=dtype)
+    feat_xmax = tf.ones(shape, dtype=dtype)
+
+    def jaccard_with_anchors(bbox): # IOU
+        """Compute jaccard score between a box and the anchors.
+        """
+        int_ymin = tf.maximum(ymin, bbox[0])
+        int_xmin = tf.maximum(xmin, bbox[1])
+        int_ymax = tf.minimum(ymax, bbox[2])
+        int_xmax = tf.minimum(xmax, bbox[3])
+        h = tf.maximum(int_ymax - int_ymin, 0.)
+        w = tf.maximum(int_xmax - int_xmin, 0.)
+        # Volumes.
+        inter_vol = h * w
+        union_vol = vol_anchors - inter_vol \
+            + (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+        jaccard = tf.div(inter_vol, union_vol)
+        return jaccard
+
+    def intersection_with_anchors(bbox):
+        """Compute intersection between score a box and the anchors.
+        """
+        int_ymin = tf.maximum(ymin, bbox[0])
+        int_xmin = tf.maximum(xmin, bbox[1])
+        int_ymax = tf.minimum(ymax, bbox[2])
+        int_xmax = tf.minimum(xmax, bbox[3])
+        h = tf.maximum(int_ymax - int_ymin, 0.)
+        w = tf.maximum(int_xmax - int_xmin, 0.)
+        inter_vol = h * w
+        scores = tf.div(inter_vol, vol_anchors)
+        return scores
+
+    def condition(i, feat_labels, feat_scores,
+                  feat_ymin, feat_xmin, feat_ymax, feat_xmax):
+        """Condition: check label index.
+        """
+        r = tf.less(i, tf.shape(labels))
+        return r[0]
+
+    def body(i, feat_labels, feat_scores,
+             feat_ymin, feat_xmin, feat_ymax, feat_xmax):
+        """
+        loop body, iterate each ground truth box and label, 
+                    and match anchors to it
+                    each GT box has at least one anchors, 
+                    and each anchor matches only one GT box
+        Body: update feature labels, scores and bboxes.
+        Follow the original SSD paper for that purpose:
+          - assign values when jaccard > 0.5;
+          - only update if beat the score of other bboxes.
+        """
+        label = labels[i]
+        bbox = bboxes[i]
+        jaccard = jaccard_with_anchors(bbox) # IOU
+        ### Mask: check threshold + scores + no annotations + num_classes.
+        ## check if the IOU is larger than former IOU of another GT box
+        mask = tf.greater(jaccard, feat_scores)
+        # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
+        mask = tf.logical_and(mask, feat_scores > -0.5) # ???
+        mask = tf.logical_and(mask, label < num_classes) # ???
+        imask = tf.cast(mask, tf.int64)
+        fmask = tf.cast(mask, dtype)
+        # Update values using mask.
+        feat_labels = imask * label + (1 - imask) * feat_labels
+        feat_scores = tf.where(mask, jaccard, feat_scores)
+
+        feat_ymin = fmask * bbox[0] + (1 - fmask) * feat_ymin
+        feat_xmin = fmask * bbox[1] + (1 - fmask) * feat_xmin
+        feat_ymax = fmask * bbox[2] + (1 - fmask) * feat_ymax
+        feat_xmax = fmask * bbox[3] + (1 - fmask) * feat_xmax
+
+        # Check no annotation label: ignore these anchors...
+        # interscts = intersection_with_anchors(bbox)
+        # mask = tf.logical_and(interscts > ignore_threshold,
+        #                       label == no_annotation_label)
+        # # Replace scores by -1.
+        # feat_scores = tf.where(mask, -tf.cast(mask, dtype), feat_scores)
+
+        return [i+1, feat_labels, feat_scores,
+                feat_ymin, feat_xmin, feat_ymax, feat_xmax]
+    # Main loop definition.
+    
+    i = 0
+    [i, feat_labels, feat_scores,
+     feat_ymin, feat_xmin,
+     feat_ymax, feat_xmax] = tf.while_loop(condition, body,
+                                           [i, feat_labels, feat_scores,
+                                            feat_ymin, feat_xmin,
+                                            feat_ymax, feat_xmax])
+    # Transform to center / size.
+    feat_cy = (feat_ymax + feat_ymin) / 2.
+    feat_cx = (feat_xmax + feat_xmin) / 2.
+    feat_h = feat_ymax - feat_ymin
+    feat_w = feat_xmax - feat_xmin
+    # Encode features.
+    feat_cy = (feat_cy - yref) / href / prior_scaling[0]
+    feat_cx = (feat_cx - xref) / wref / prior_scaling[1]
+    feat_h = tf.log(feat_h / href) / prior_scaling[2]
+    feat_w = tf.log(feat_w / wref) / prior_scaling[3]
+    # Use SSD ordering: x / y / w / h instead of ours.
+    feat_localizations = tf.stack([feat_cx, feat_cy, feat_w, feat_h], axis=-1) # [feat_w, feat_h, num_anchors, num_coords(4)]
+    return feat_labels, feat_localizations, feat_scores
+
+def odm_anchor_match_layer(gtlabels, gtboxes,
                             anchors_layer,
                             num_classes,
                             no_annotation_label,
-                            anchor_for='arm',
                             ignore_threshold=0.5,
                             anchor_scaling=[0.1, 0.1, 0.2, 0.2],
                             dtype=tf.float32):
@@ -413,29 +552,17 @@ def ssd_anchor_match_layer(gtlabels,
     # Anchors coordinates and volume.
     gtboxes = tf.cast(gtboxes, dtype)
     gtlabels = tf.cast(gtlabels, dtype)
-    batch_size = tf.shape(gtboxes)[0]
-    print('batch_size', batch_size)
-    if anchor_for == 'arm':
-        xref, yref, wref, href = anchors_layer
-        coord_shape = [-1,yref.shape[0], yref.shape[1], href.size] #(w,h,anchor_number)
-        feat_labels = tf.expand_dims(tf.zeros(coord_shape, dtype=dtype),axis=0)
-        ymin = tf.reshape(yref - href / 2.,coord_shape) # (1,feat_w,feat_h,anchor_num)
-        xmin = tf.reshape(xref - wref / 2.,coord_shape)
-        ymax = tf.reshape(yref + href / 2.,coord_shape)
-        xmax = tf.reshape(xref + wref / 2.,coord_shape)
-    elif anchor_for == 'odm':
-        xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
-        # xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]
-        # yref = yref * anchor_scaling[1] * anchors_layer[3] + anchors_layer[1] 
-        # wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
-        # href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
-        feat_labels = tf.zeros_like(xref)
-        coord_shape = xref.get_shape().as_list() #(batch,w,h,anchor_number)
-        ymin = yref - href / 2.
-        xmin = xref - wref / 2.
-        ymax = yref + href / 2.
-        xmax = xref + wref / 2.
-    else: raise ValueError('*anchor_for* must be one of odm and arm but got %s'%(anchor_for))
+    xref, yref, wref, href = tf.split(anchors_layer, axis=-1, num_or_size_splits=4)
+    # xref = xref * anchor_scaling[0] * anchors_layer[2] + anchors_layer[0]
+    # yref = yref * anchor_scaling[1] * anchors_layer[3] + anchors_layer[1] 
+    # wref = tf.exp(wref * anchor_scaling[2]) * anchors_layer[2]
+    # href = tf.exp(href * anchor_scaling[3]) * anchors_layer[3]
+    feat_labels = tf.zeros_like(xref)
+    coord_shape = xref.get_shape().as_list() #(batch,w,h,anchor_number)
+    ymin = yref - href / 2.
+    xmin = xref - wref / 2.
+    ymax = yref + href / 2.
+    xmax = xref + wref / 2.
     vol_anchors = (xmax - xmin) * (ymax - ymin)
     # Initialize tensors...
     feat_scores = tf.zeros_like(feat_labels)
@@ -573,6 +700,8 @@ def ssd_anchor_match(labels,
       (target_labels, target_localizations, target_scores):
         Each element is a list of target Tensors.
     """
+    assert anchor_for in ['arm','odm'], 'anchor_for argument illegal, but got ' + str(anchor_for)
+    match_fn = arm_anchor_match_layer if anchor_for == 'arm' else odm_anchor_match_layer
     with tf.name_scope(scope):
         target_labels = []
         target_localizations = []
@@ -580,11 +709,11 @@ def ssd_anchor_match(labels,
         for i, anchors_layer in enumerate(anchors):
             with tf.name_scope('bboxes_encode_block_%i' % i):
                 t_labels, t_loc, t_scores = \
-                    ssd_anchor_match_layer(labels, bboxes, anchors_layer,
-                                               num_classes, no_annotation_label,
-                                               anchor_for,
-                                               ignore_threshold,
-                                               anchor_scaling, dtype)
+                    match_fn(labels, bboxes, anchors_layer,
+                                        num_classes, no_annotation_label,
+                                        anchor_for,
+                                        ignore_threshold,
+                                        anchor_scaling, dtype)
                 target_labels.append(t_labels)
                 target_localizations.append(t_loc)
                 target_scores.append(t_scores)

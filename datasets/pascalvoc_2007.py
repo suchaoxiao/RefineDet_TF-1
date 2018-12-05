@@ -86,7 +86,7 @@ SPLITS_TO_STATISTICS = {
 NUM_CLASSES = 20
 
 
-def get_dataset(split_name, dataset_dir, batch_size, num_epoch, file_pattern=None, reader=None):
+def get_dataset(split_name, dataset_dir, batch_size,image_shape, num_epoch, file_pattern=None, reader=None):
     """Gets a dataset tuple with instructions for reading ImageNet.
 
     Args:
@@ -106,7 +106,7 @@ def get_dataset(split_name, dataset_dir, batch_size, num_epoch, file_pattern=Non
     if not file_pattern:
         file_pattern = FILE_PATTERN
     return pascalvoc_common.get_split(split_name, dataset_dir,
-                                      batch_size, num_epoch,
+                                      batch_size, image_shape, num_epoch,
                                       file_pattern, 
                                       SPLITS_TO_SIZES,
                                       ITEMS_TO_DESCRIPTIONS,

@@ -23,7 +23,7 @@ import tensorflow as tf
 
 from net import model, bboxes
 from tf_extended import utils_func, metrics
-from config_training import configuration
+from config_training import configuration as config
 from datasets import dataset_factory
 from preprocess import preprocessing_factory
 
@@ -107,7 +107,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
         # Device that runs the ops to apply global gradient updates.
         consolidation_device = '/gpu:0' if variable_strategy == 'GPU' else '/cpu:0'
         with tf.device(consolidation_device):
-            num_batches_per_epoch = configuration['num_examples_per_epoch_train'] // (
+            num_batches_per_epoch = config['num_examples_per_epoch_train'] // (
                 params.train_batch_size)
             # learning rate change epoch and corresponding learning rate
             boundaries = [
@@ -243,11 +243,11 @@ def _tower_fn(is_training, weight_decay, feature, label, data_format):
     '''
     used for training of each gpu
     '''   
-    image, bbox = feature
+    image, bbox, arm_anchor_label, arm_anchor_loc, arm_anchor_scores = feature
     net = model.get_model()  # unused config, getpbb
     end_points = net.model_func(image, is_training=is_training,
                             input_data_format='channels_last')
-    tower_loss = net.forward(end_points, [bbox,label])
+    tower_loss = net.forward(end_points, [bbox,label],[arm_anchor_label, arm_anchor_loc, arm_anchor_scores])
 
     model_params = tf.trainable_variables()
     reg_loss = weight_decay * tf.add_n( # regularization
@@ -280,16 +280,18 @@ def input_fn(data_dir,
         # use_distortion = subset == 'train' and use_distortion_for_training
         # to be reshaped, first two elements are float64
         dataset_name = 'pascalvoc_2007'
+
         dataset = dataset_factory.get_dataset(dataset_name, subset, data_dir,
-                                batch_size, configuration['num_epoches'])
-        
+                                batch_size, config['image_shape'],config['num_epoches'])
         
         iterator = dataset.make_one_shot_iterator()
-        image_batch, label_batch, coord_batch = iterator.get_next()
+        image_batch, label_batch, coord_batch, arm_anchor_labels_batch,\
+            arm_anchor_loc_batch, arm_anchor_scores_batch = iterator.get_next()
 
         if num_shards <= 1:
             # No GPU available or only 1 GPU.
-            return {'image': [image_batch], 'coord': [coord_batch]}, [label_batch]
+            return {'image': [image_batch], 'coord': [coord_batch], 'anchor_label':[arm_anchor_labels_batch],
+                    'anchor_loc':[arm_anchor_loc_batch],'anchor_score':[arm_anchor_scores_batch]}, [label_batch]
 
         # Note that passing num=batch_size is safe here, even though
         # dataset.batch(batch_size) can, in some cases, return fewer than batch_size
@@ -338,7 +340,7 @@ def get_experiment_fn(data_dir,
             batch_size=hparams.eval_batch_size,
             num_shards=num_gpus)
 
-        num_eval_examples = configuration['num_examples_per_epoch_eval']
+        num_eval_examples = config['num_examples_per_epoch_eval']
         if num_eval_examples % hparams.eval_batch_size != 0:
             raise ValueError(
                 'validation set size must be multiple of eval_batch_size')
@@ -370,7 +372,7 @@ def main(model_dir, data_dir, num_gpus, variable_strategy,
     os.environ['TF_SYNC_ON_FINISH'] = '0'
     os.environ['TF_ENABLE_WINOGRAD_NONFUSED'] = '1'
 
-    # Session configuration.
+    # Session config.
     sess_config = tf.ConfigProto(
         allow_soft_placement=True,
         log_device_placement=log_device_placement,
@@ -396,12 +398,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model-dir',
         type=str,
-        default=configuration['model_path'],
+        default=config['model_path'],
         help='The directory where the model will be stored.')
     parser.add_argument(
         '--data-dir',
         type=str,
-        default=configuration['data_dir'],
+        default=config['data_dir'],
         help='dataset directory')
     parser.add_argument(
         '--variable-strategy',
@@ -412,37 +414,37 @@ if __name__ == '__main__':
     parser.add_argument(
         '--num-gpus',
         type=int,
-        default=configuration['num_gpus'],
+        default=config['num_gpus'],
         help='The number of gpus used. Uses only CPU if set to 0.')
     parser.add_argument(
         '--train-steps',
         type=int,
-        default=configuration['train_steps'],
+        default=config['train_steps'],
         help='The number of steps to use for training.')
     parser.add_argument(
         '--train-batch-size',
         type=int,
-        default=configuration['batch_size'],
+        default=config['batch_size'],
         help='Batch size for training.')
     parser.add_argument(
         '--eval-batch-size',
         type=int,
-        default=configuration['batch_size'],
+        default=config['batch_size'],
         help='Batch size for validation.')
     parser.add_argument(
         '--momentum',
         type=float,
-        default=configuration['momentum'],
+        default=config['momentum'],
         help='Momentum for MomentumOptimizer.')
     parser.add_argument(
         '--weight-decay',
         type=float,
-        default=configuration['weight_decay'],
+        default=config['weight_decay'],
         help='Weight decay for convolutions.')
     parser.add_argument(
         '--learning-rate',
         type=float,
-        default=configuration['learning_rate'],
+        default=config['learning_rate'],
         help="""\
         This is the inital learning rate value. The learning rate will decrease
         during training. For more details check the model_fn implementation in

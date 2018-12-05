@@ -25,8 +25,8 @@ datasets_map = {
 }
 
 
-def get_dataset(name, split_name, dataset_dir, batch_size=32, num_epoch=1e4,
-                 file_pattern=None, reader=None):
+def get_dataset(name, split_name, dataset_dir, batch_size=32, image_shape=(300,300),
+                num_epoch=1e4, file_pattern=None, reader=None):
     """Given a dataset name and a split_name returns a Dataset.
 
     Args:
@@ -46,6 +46,7 @@ def get_dataset(name, split_name, dataset_dir, batch_size=32, num_epoch=1e4,
     return datasets_map[name].get_dataset(split_name,
                                         dataset_dir,
                                         batch_size,
+                                        image_shape,
                                         num_epoch,
                                         file_pattern,
                                         reader)

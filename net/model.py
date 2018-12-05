@@ -14,6 +14,7 @@ import net.negative_filtering as neg_filter
 
 config = {}
 config['image_shape'] = [512,512]
+config['feat_shapes'] = [(512,512),(256,256),(128,128),(64,64),(32,32),(16,16),(8,8)]
 config['anchor_sizes'] = [(20.48, 51.2),
                       (51.2, 133.12),
                       (133.12, 215.04),
@@ -148,8 +149,17 @@ class Refine_det(object):
         #     [1,2,.5,3,1./3], [1,2,.5], [1,2,.5]]
         return end_points
     
-    def forward(self, end_points, ground_truths):
+    def get_prematched_anchors(self, image_shape, gtlabels, gtboxes):
+        anchor_boxes = common.ssd_anchors_all_layers(image_shape,config['feat_shape'],
+                           config['anchor_sizes'], config['anchor_ratios'],
+                           config['anchor_steps'], offset=0.5, dtype=np.float32)
+        arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
+                                                    anchor_boxes, self.config, anchor_for='arm')
+        return arm_anchor_labels, arm_anchor_loc, arm_anchor_scores
+
+    def forward(self, end_points, ground_truths, targets):
         gtboxes, gtlabels = ground_truths
+        arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = targets
         self.from_layers = []
         for name in self.ARM_LAYERS:
             self.from_layers.append(end_points[name])
@@ -160,8 +170,8 @@ class Refine_det(object):
         # odm_loc, odm_cls = common.concat_preds(odm_loc_layers, odm_cls_layers, 'odm')
 
         anchor_boxes = common.get_anchors(config, self.from_layers)
-        arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
-                                                    anchor_boxes, self.config, anchor_for='arm')
+        # arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
+        #                                             anchor_boxes, self.config, anchor_for='arm')
         refined_anchors = common.refine_anchor(anchor_boxes, arm_loc_layers)
         end_points['refined_anchors'] = refined_anchors
         # end_points['odm_loc'] = odm_loc

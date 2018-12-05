@@ -4,6 +4,8 @@ configuration = {
 
     'num_gpus':1,
 
+    'image_shape':(512,512),
+
     'num_examples_per_epoch_train':4000,
     'num_examples_per_epoch_eval':1024,
     'num_epoches':10000,
