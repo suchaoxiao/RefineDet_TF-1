@@ -500,7 +500,7 @@ if __name__ == '__main__':
                         help='number of image examples')
     parser.add_argument('--class-names', dest='class_names', type=str,
                         default='nodule')
-    parser.add_argument('--nms', dest='nms_thresh', type=float, default=0.45,
+    parser.add_argument('--nms-threshold', dest='nms_threshold', type=float, default=0.45,
                         help='non-maximum suppression threshold')
     parser.add_argument('--overlap', dest='overlap_thresh', type=float, default=0.5,
                         help='evaluation overlap threshold')
