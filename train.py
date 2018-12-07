@@ -164,8 +164,8 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             rscores = predictions['score']
             rbboxes = predictions['bbox']
             print('labels',labels)
-            b_glabels = labels['classes']
-            b_gbboxes = labels['bbox']
+            b_glabels = labels
+            b_gbboxes = tf.concat(features['coord'],axis=0)
             # ==========================================================================
             # Performing post-processing on CPU: loop-intensive, usually more efficient.
             # ==========================================================================
