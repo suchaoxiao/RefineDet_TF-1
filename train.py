@@ -222,7 +222,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                     tf.add_to_collection(tf.GraphKeys.SUMMARIES, op_rec)
 
                     # Average precision VOC07.
-                    v = metrics.average_precision_voc(prec, rec)
+                    v = metrics.average_precision_voc07(prec, rec)
                     summary_name = 'AP_VOC/%s' % c
                     op = tf.summary.scalar(summary_name, v, collections=[])
                     tf.add_to_collection(tf.GraphKeys.SUMMARIES, op)
