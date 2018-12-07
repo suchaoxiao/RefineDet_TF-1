@@ -494,6 +494,8 @@ if __name__ == '__main__':
         """)
     parser.add_argument('--num-class', dest='num_class', type=int, default=1,
                         help='number of classes')
+    parser.add_argument('--select-threshold', dest='select_threshold', type=int, default=None,
+                        help='number of classes')
     parser.add_argument('--num-example', dest='num_example', type=int, default=16551,
                         help='number of image examples')
     parser.add_argument('--class-names', dest='class_names', type=str,
