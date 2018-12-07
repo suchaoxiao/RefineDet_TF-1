@@ -171,7 +171,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             # ==========================================================================
             with tf.device('/device:CPU:0'):
                 # Detected objects from SSD output.
-                rscores, rbboxes = bboxes.detect_bboxes(rscores, rbboxes,
+                rscores, rbboxes = bboxes.detect_bboxes(rscores, rbboxes, num_classes=params.num_class,
                                                    select_threshold=params.select_threshold,
                                                    nms_threshold=params.nms_threshold,
                                                    clipping_bbox=None,
@@ -492,8 +492,8 @@ if __name__ == '__main__':
         If not set, the data format best for the training device is used.
         Allowed values: channels_first (NCHW) channels_last (NHWC).\
         """)
-    parser.add_argument('--num-class', dest='num_class', type=int, default=1,
-                        help='number of classes')
+    parser.add_argument('--num-class', dest='num_class', type=int, default=21,
+                        help='number of classes, including background')
     parser.add_argument('--num-example', dest='num_example', type=int, default=16551,
                         help='number of image examples')
     parser.add_argument('--class-names', dest='class_names', type=str,
