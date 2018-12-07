@@ -336,7 +336,7 @@ def bboxes_matching(label, scores, bboxes,
 
 
 def bboxes_matching_batch(labels, scores, bboxes,
-                          glabels, gbboxes, gdifficults,
+                          glabels, gbboxes, #gdifficults,
                           matching_threshold=0.5, scope=None):
     """Matching a collection of detected boxes with groundtruth values.
     Batched-inputs version.
