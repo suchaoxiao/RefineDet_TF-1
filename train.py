@@ -155,6 +155,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             ]
             train_op.extend(update_ops)
             train_op = tf.group(*train_op)
+            print('tower_preds',tower_preds)
             scores = list(zip(*[p['score'] for p in tower_preds]))
             bboxes = list(zip(*[p['bbox'] for p in tower_preds]))
             print('scores:',scores)
