@@ -163,7 +163,6 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                            }
             rscores = predictions['score']
             rbboxes = predictions['bbox']
-            print('labels',labels)
             b_glabels = tf.concat(labels,axis=0)
             b_gbboxes = tf.concat(features['coord'],axis=0)
             # ==========================================================================
@@ -183,6 +182,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                     bboxes.bboxes_matching_batch(rscores.keys(), rscores, rbboxes,
                                           b_glabels, b_gbboxes, b_gdifficults,
                                           matching_threshold=params.matching_threshold)
+                print('rbboxes',rbboxes.get_shape().as_list())
 
             # =================================================================== #
             # Evaluation metrics.
