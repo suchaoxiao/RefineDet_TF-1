@@ -494,14 +494,20 @@ if __name__ == '__main__':
         """)
     parser.add_argument('--num-class', dest='num_class', type=int, default=1,
                         help='number of classes')
-    parser.add_argument('--select-threshold', dest='select_threshold', type=int, default=None,
-                        help='number of classes')
     parser.add_argument('--num-example', dest='num_example', type=int, default=16551,
                         help='number of image examples')
     parser.add_argument('--class-names', dest='class_names', type=str,
                         default='nodule')
     parser.add_argument('--nms-threshold', dest='nms_threshold', type=float, default=0.45,
                         help='non-maximum suppression threshold')
+    parser.add_argument('--matching-threshold', dest='matching_threshold', type=float, default=0.5,
+                        help='non-maximum suppression threshold')
+    parser.add_argument('--select-threshold', dest='select_threshold', type=float, default=None,
+                        help='pre select threshold????')
+    parser.add_argument('--select-top-k', dest='select_top_k', type=int, default=400,
+                        help='select top k bounding boxes????')
+    parser.add_argument('--keep-top-k', dest='keep_top_k', type=int, default=200,
+                        help='keep top k bounding boxes????')
     parser.add_argument('--overlap', dest='overlap_thresh', type=float, default=0.5,
                         help='evaluation overlap threshold')
     parser.add_argument('--force', dest='force_nms', type=bool, default=False,
