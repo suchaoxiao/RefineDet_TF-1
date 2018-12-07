@@ -2,6 +2,7 @@ import math
 import numpy as np
 import tensorflow as tf
 from net import bboxes
+from tf_extended import tensors
 
 
 def conv_act_layer(from_layer, name, num_filter, use_bn=False, kernel=3, stride=1, pad='valid', data_format='channels_last', act_type="relu", num=1):
@@ -794,10 +795,10 @@ def ssd_bboxes_select_layer(predictions_layer, localizations_layer,
     with tf.name_scope(scope, 'ssd_bboxes_select_layer',
                        [predictions_layer, localizations_layer]):
         # Reshape features: Batches x N x N_labels | 4
-        p_shape = bboxes.get_shape(predictions_layer)
+        p_shape = tensors.get_shape(predictions_layer)
         predictions_layer = tf.reshape(predictions_layer,
                                        tf.stack([p_shape[0], -1, p_shape[-1]]))
-        l_shape = bboxes.get_shape(localizations_layer)
+        l_shape = tensors.get_shape(localizations_layer)
         localizations_layer = tf.reshape(localizations_layer,
                                          tf.stack([l_shape[0], -1, l_shape[-1]]))
 
