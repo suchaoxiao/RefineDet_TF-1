@@ -155,17 +155,15 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             ]
             train_op.extend(update_ops)
             train_op = tf.group(*train_op)
-            print('tower_preds',tower_preds)
             scores = list(zip(*[p['score'] for p in tower_preds]))
             bboxes = list(zip(*[p['bbox'] for p in tower_preds]))
-            print('scores:',scores)
-            print('bboxes:',bboxes)
             predictions = {'score': [tf.concat(score, axis=0) for score in scores],
                         #    'classes': tf.concat([p['classes'] for p in tower_preds], axis=0),
                            'bbox': [tf.concat(bbox, axis=0) for bbox in bboxes],
                            }
             rscores = predictions['score']
             rbboxes = predictions['bbox']
+            print('labels',labels)
             b_glabels = labels['classes']
             b_gbboxes = labels['bbox']
             # ==========================================================================
