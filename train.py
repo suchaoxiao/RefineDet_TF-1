@@ -171,7 +171,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             # ==========================================================================
             with tf.device('/device:CPU:0'):
                 # Detected objects from SSD output.
-                rscores, rbboxes = bboxes.detected_bboxes(rscores, rbboxes,
+                rscores, rbboxes = bboxes.detect_bboxes(rscores, rbboxes,
                                                    select_threshold=params.select_threshold,
                                                    nms_threshold=params.nms_threshold,
                                                    clipping_bbox=None,
