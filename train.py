@@ -178,9 +178,10 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                                                    top_k=params.select_top_k,
                                                    keep_top_k=params.keep_top_k)
                 # Compute TP and FP statistics.
+                b_gdifficults = tf.zeros_like(b_glabels)
                 num_gbboxes, tp, fp, rscores = \
                     bboxes.bboxes_matching_batch(rscores.keys(), rscores, rbboxes,
-                                          b_glabels, b_gbboxes,
+                                          b_glabels, b_gbboxes, b_gdifficults,
                                           matching_threshold=params.matching_threshold)
 
             # =================================================================== #

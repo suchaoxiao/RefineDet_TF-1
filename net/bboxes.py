@@ -298,7 +298,7 @@ def bboxes_matching(label, scores, bboxes,
             jcdmax = jaccard[idxmax]
             match = jcdmax > matching_threshold
             existing_match = gmatch[idxmax]
-            not_difficult = tf.logical_not(gdifficults[idxmax])
+            not_difficult = tf.logical_not(gdifficults[idxmax]) # commented to ignore difficults
 
             # TP: match & no previous match and FP: previous match | no match.
             # If difficult: no record, i.e FP=False and TP=False.
@@ -336,7 +336,7 @@ def bboxes_matching(label, scores, bboxes,
 
 
 def bboxes_matching_batch(labels, scores, bboxes,
-                          glabels, gbboxes, #gdifficults,
+                          glabels, gbboxes, gdifficults,
                           matching_threshold=0.5, scope=None):
     """Matching a collection of detected boxes with groundtruth values.
     Batched-inputs version.
