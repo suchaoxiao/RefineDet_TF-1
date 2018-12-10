@@ -22,7 +22,7 @@ import numpy as np
 import tensorflow as tf
 
 from net import model, bboxes
-from tf_extended import utils_func, metrics
+from tf_extended import utils_func, metrics, tensors
 from config_training import configuration as config
 from datasets import dataset_factory
 from preprocess import preprocessing_factory
@@ -235,7 +235,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                 # tf.add_to_collection(tf.GraphKeys.SUMMARIES, op)
         for k,v in six.iteritems(predictions):
             for tensor in v:
-                tshape = utils_func.get_shape(tensor)
+                tshape = tensors.get_shape(tensor)
                 tshape.pop(1)
                 tshape[1] = -1
                 tf.reshape(tensor, tf.stack(tshape))
