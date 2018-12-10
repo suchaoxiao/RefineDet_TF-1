@@ -234,15 +234,17 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                 # op = tf.Print(op, [mAP], summary_name)
                 # tf.add_to_collection(tf.GraphKeys.SUMMARIES, op)
         for k,v in six.iteritems(predictions):
+            new = []
             for tensor in v:
                 tshape = tensors.get_shape(tensor)
                 tshape.pop(1)
                 tshape.pop(2)
                 tshape[1] = -1
                 tensor = tf.reshape(tensor, tf.stack(tshape))
-            for tensor in v:
-                print('tensor %s shape is'%(tensor.name),tensor.get_shape().as_list())
-            v = tf.concat(v,axis=1)
+                new.append(tensor)
+            # for tensor in v:
+            #     print('tensor %s shape is'%(tensor.name),tensor.get_shape().as_list())
+            predictions[k] = tf.concat(new,axis=1)
         
         return tf.estimator.EstimatorSpec(
             mode=mode,
