@@ -233,9 +233,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                 # op = tf.summary.scalar(summary_name, mAP, collections=[])
                 # op = tf.Print(op, [mAP], summary_name)
                 # tf.add_to_collection(tf.GraphKeys.SUMMARIES, op)
-        print('predictions:',predictions)
-        for pair in predictions:
-            print(pair)
+        for k,v in six.iteritems(predictions):
             for tensor in v:
                 tshape = utils_func.get_shape(tensor)
                 tshape.pop(1)
