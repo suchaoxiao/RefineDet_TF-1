@@ -238,7 +238,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                 tshape = tensors.get_shape(tensor)
                 tshape.pop(1)
                 tshape[1] = -1
-                tf.reshape(tensor, tf.stack(tshape))
+                tensor = tf.reshape(tensor, tf.stack(tshape))
                 print('tensor %s shape is'%(tensor.name),tensor.get_shape().as_list())
         
         return tf.estimator.EstimatorSpec(
