@@ -182,7 +182,6 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                     bboxes.bboxes_matching_batch(rscores.keys(), rscores, rbboxes,
                                           b_glabels, b_gbboxes, b_gdifficults,
                                           matching_threshold=params.matching_threshold)
-                print('rbboxes',rbboxes.get_shape().as_list())
 
             # =================================================================== #
             # Evaluation metrics.
@@ -235,6 +234,14 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                 # op = tf.Print(op, [mAP], summary_name)
                 # tf.add_to_collection(tf.GraphKeys.SUMMARIES, op)
 
+        for k, v in predictions:
+            for tensor in v:
+                tshape = utils_func.get_shape(tensor)
+                tshape.pop(1)
+                tshape[1] = -1
+                tf.reshape(tensor, tf.stack(tshape))
+                print('tensor %s shape is'%(tensor.name),tensor.get_shape().as_list())
+        
         return tf.estimator.EstimatorSpec(
             mode=mode,
             predictions=predictions,
