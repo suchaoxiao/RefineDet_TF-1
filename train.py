@@ -240,6 +240,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                 tshape[1] = -1
                 tensor = tf.reshape(tensor, tf.stack(tshape))
                 print('tensor %s shape is'%(tensor.name),tensor.get_shape().as_list())
+            v = tf.concat(v,axis=1)
         
         return tf.estimator.EstimatorSpec(
             mode=mode,
