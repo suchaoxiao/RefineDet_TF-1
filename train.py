@@ -237,6 +237,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             for tensor in v:
                 tshape = tensors.get_shape(tensor)
                 tshape.pop(1)
+                tshape.pop(2)
                 tshape[1] = -1
                 tensor = tf.reshape(tensor, tf.stack(tshape))
                 print('tensor %s shape is'%(tensor.name),tensor.get_shape().as_list())
