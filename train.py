@@ -218,7 +218,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
 
                     summary_name_rec = 'recall/%s' % c
                     op_rec = tf.summary.scalar(
-                        summary_name_rec, rec, collections=[])
+                        summary_name_rec, tf.squeeze(rec), collections=[])
                     tf.add_to_collection(tf.GraphKeys.SUMMARIES, op_rec)
 
                     # Average precision VOC07.
