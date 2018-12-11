@@ -274,7 +274,6 @@ def bboxes_matching(label, scores, bboxes,
         gdifficults = tf.cast(gdifficults, tf.bool)
         n_gbboxes = tf.count_nonzero(tf.logical_and(tf.equal(glabels, label),
                                                     tf.logical_not(gdifficults)))
-        print('ngbboxes::',n_gbboxes)
         # Grountruth matching arrays.
         gmatch = tf.zeros(tf.shape(glabels), dtype=tf.bool)
         grange = tf.range(tf.size(glabels), dtype=tf.int32)
@@ -333,6 +332,8 @@ def bboxes_matching(label, scores, bboxes,
         #                      tf.reduce_sum(tf.cast(fp_match, tf.int64)),
         #                      tf.reduce_sum(tf.cast(gmatch, tf.int64))],
         #                     'Matching (NG, TP, FP, GM): ')
+        print('ngbboxes::',n_gbboxes.shape)
+        print('tp_match::',tp_match.shape)
         return n_gbboxes, tp_match, fp_match
 
 
@@ -380,6 +381,7 @@ def bboxes_matching_batch(labels, scores, bboxes,
                       back_prop=False,
                       swap_memory=True,
                       infer_shape=True)
+        print('rrrrrr[0]:', r[0])
         return r[0], r[1], r[2], scores
 
 
