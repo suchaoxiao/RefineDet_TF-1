@@ -347,8 +347,8 @@ def bboxes_matching_batch(labels, scores, bboxes,
         zero-class objects are ignored.
       matching_threshold: Threshold for a positive match.
     Return: Tuple or Dictionaries with:
-       n_gbboxes: Scalar Tensor with number of groundtruth boxes (may difer from
-         size because of zero padding).
+       n_gbboxes: Scalar Tensor with total number of groundtruth boxes in a batch (
+         may difer from size because of zero padding).
        tp: (B, N)-shaped boolean Tensor containing with True Positives.
        fp: (B, N)-shaped boolean Tensor containing with False Positives.
     """
