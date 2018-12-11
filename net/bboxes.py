@@ -362,6 +362,7 @@ def bboxes_matching_batch(labels, scores, bboxes,
                 n, tp, fp, _ = bboxes_matching_batch(c, scores[c], bboxes[c],
                                                      glabels, gbboxes, gdifficults,
                                                      matching_threshold)
+                print('num_boxes:',n)
                 d_n_gbboxes[c] = n
                 d_tp[c] = tp
                 d_fp[c] = fp
