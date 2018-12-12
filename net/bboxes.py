@@ -332,8 +332,6 @@ def bboxes_matching(label, scores, bboxes,
         #                      tf.reduce_sum(tf.cast(fp_match, tf.int64)),
         #                      tf.reduce_sum(tf.cast(gmatch, tf.int64))],
         #                     'Matching (NG, TP, FP, GM): ')
-        print('ngbboxes::',n_gbboxes.shape)
-        print('tp_match::',tp_match.shape)
         return n_gbboxes, tp_match, fp_match
 
 
@@ -364,7 +362,6 @@ def bboxes_matching_batch(labels, scores, bboxes,
                 n, tp, fp, _ = bboxes_matching_batch(c, scores[c], bboxes[c],
                                                      glabels, gbboxes, gdifficults,
                                                      matching_threshold)
-                print('num_boxes:',n)
                 d_n_gbboxes[c] = n
                 d_tp[c] = tp
                 d_fp[c] = fp

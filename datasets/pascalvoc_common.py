@@ -80,7 +80,8 @@ def _parser_fn(record, split_name, img_shape):
         image, labels, bboxes = ssd_vgg_preprocessing.preprocess_for_eval(image, labels, bboxes,img_shape)
     net = model.get_model()
     arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = net.get_prematched_anchors(img_shape,labels,bboxes)
-    return tf_utils.reshape_list([image, labels, bboxes, arm_anchor_labels, arm_anchor_loc, arm_anchor_scores])
+    output = tf_utils.reshape_list([image, labels, bboxes, arm_anchor_labels, arm_anchor_loc, arm_anchor_scores])
+    print(len(output))
 
 def get_split(split_name, dataset_dir, batch_size, image_shape, num_epoches, file_pattern,
               split_to_sizes, items_to_descriptions, num_classes):
