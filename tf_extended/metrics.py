@@ -126,7 +126,6 @@ def precision_recall(num_gbboxes, num_detections, tp, fp, scores,
         tp = tf.cumsum(tf.cast(tp, dtype), axis=0)
         fp = tf.cumsum(tf.cast(fp, dtype), axis=0)
         recall = _safe_div(tp, tf.cast(num_gbboxes, dtype), 'recall')
-        print('recall:',recall.get_shape().as_list())
         precision = _safe_div(tp, tp + fp, 'precision')
         return tf.tuple([precision, recall])
 

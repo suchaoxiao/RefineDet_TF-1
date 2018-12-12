@@ -209,7 +209,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                 for c in tp_fp_metric[0].keys():
                     # Precison and recall values.
                     prec, rec = metrics.precision_recall(*tp_fp_metric[0][c])
-
+                    print('prec:',prec.shape)
                     summary_name_pr = 'precision/%s' % c
                     op_pr = tf.summary.scalar(
                         summary_name_pr, prec, collections=[])

@@ -381,7 +381,6 @@ def bboxes_matching_batch(labels, scores, bboxes,
                       back_prop=False,
                       swap_memory=True,
                       infer_shape=True)
-        print('rrrrrr[0]:', r[0])
         return r[0], r[1], r[2], scores
 
 
