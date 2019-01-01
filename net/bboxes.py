@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from tf_extended import tensors as tfe_tensors
 from tf_extended import math as tfe_math
-import net.common as common
+from net import common
 
 
 # =========================================================================== #
