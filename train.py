@@ -20,6 +20,7 @@ import argparse, functools, itertools, os, six
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import numpy as np
 import tensorflow as tf
+slim = tf.contrib.slim
 
 from net import model, bboxes
 from tf_extended import utils_func, metrics, tensors
@@ -250,6 +251,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             predictions=predictions,
             loss=loss,
             train_op=train_op,
+            eval_metric_ops=aps_voc,
             training_hooks=train_hooks)
 
     return _patech_model_fn
@@ -307,6 +309,12 @@ def input_fn(data_dir,
         if num_shards <= 1:
             image_batch, label_batch, coord_batch, arm_anchor_labels_batch, arm_anchor_loc_batch,\
                 arm_anchor_scores_batch = tf_utils.reshape_list(batch_pack,batch_shape)
+            batch_queue = slim.prefetch_queue.prefetch_queue(
+                tf_utils.reshape_list([image_batch, label_batch, coord_batch, arm_anchor_labels_batch, 
+                arm_anchor_loc_batch, arm_anchor_scores_batch])
+            )
+            image_batch, label_batch, coord_batch, arm_anchor_labels_batch, arm_anchor_loc_batch,\
+                arm_anchor_scores_batch = tf_utils.reshape_list(batch_queue.dequeue(), batch_shape)
             # No GPU available or only 1 GPU.
             return {'image': [image_batch], 'coord': [coord_batch], 'anchor_label':[arm_anchor_labels_batch],
                     'anchor_loc':[arm_anchor_loc_batch],'anchor_score':[arm_anchor_scores_batch]}, [label_batch]
