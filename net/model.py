@@ -2,7 +2,6 @@ from __future__ import division
 import os
 import time
 from glob import glob
-import cv2
 import csv
 import scipy.ndimage
 import tensorflow as tf
