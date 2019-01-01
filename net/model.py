@@ -177,7 +177,7 @@ class Refine_det(object):
         odm_anchor_labels, odm_anchor_loc, odm_anchor_scores = \
                         common.anchor_match(gtlabels, gtboxes, refined_anchors, self.config, anchor_for='odm')
         #####
-        odm_scores = tf.Print(odm_anchor_scores,[odm_anchor_scores],message='odm_scores',summarize=100)
+        odm_scores = tf.Print(odm_anchor_scores[0],[odm_anchor_scores[0]],message='odm_scores',summarize=100)
         #####
         # make losses
         arm_cls_loss, arm_loc_loss = losses.arm_losses(arm_cls_layers,arm_loc_layers,arm_anchor_labels, arm_anchor_loc, arm_anchor_scores)
