@@ -251,7 +251,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
             predictions=predictions,
             loss=loss,
             train_op=train_op,
-            eval_metric_ops=aps_voc,
+            # eval_metric_ops=aps_voc,
             training_hooks=train_hooks)
 
     return _patech_model_fn
