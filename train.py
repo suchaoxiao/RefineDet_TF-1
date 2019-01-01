@@ -21,7 +21,6 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import numpy as np
 import tensorflow as tf
 slim = tf.contrib.slim
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 from net import model, bboxes
 from tf_extended import utils_func, metrics, tensors
@@ -31,7 +30,7 @@ from preprocess import preprocessing_factory
 import tf_utils
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-tf.logging.set_verbosity(tf.logging.INFO)
+tf.logging.set_verbosity(tf.logging.DEBUG)
 
 def get_model_fn(num_gpus, variable_strategy, num_workers):
     """Returns a function that will build the resnet model."""
@@ -165,6 +164,7 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
                            }
             rscores = predictions['score']
             rbboxes = predictions['bbox']
+            tf.Print(rscores[0],[rscores[0]],'rscores',first_n=10)
             b_glabels = tf.concat(labels,axis=0)
             b_gbboxes = tf.concat(features['coord'],axis=0)
             # ==========================================================================
