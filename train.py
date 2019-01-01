@@ -312,7 +312,7 @@ def input_fn(data_dir,
                 arm_anchor_scores_batch = tf_utils.reshape_list(batch_pack,batch_shape)
             image_batch, label_batch, coord_batch, arm_anchor_labels_batch, arm_anchor_loc_batch,\
                 arm_anchor_scores_batch = tf.train.batch([image_batch, label_batch, coord_batch, arm_anchor_labels_batch, 
-                            arm_anchor_loc_batch,arm_anchor_scores_batch])
+                            arm_anchor_loc_batch,arm_anchor_scores_batch], batch_size=batch_size)
             batch_queue = slim.prefetch_queue.prefetch_queue(
                 tf_utils.reshape_list([image_batch, label_batch, coord_batch, arm_anchor_labels_batch, 
                 arm_anchor_loc_batch, arm_anchor_scores_batch])
