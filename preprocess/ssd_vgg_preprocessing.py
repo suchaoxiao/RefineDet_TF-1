@@ -363,7 +363,7 @@ def preprocess_for_eval(image, labels, bboxes,
         # Image data format.
         if data_format == 'NCHW':
             image = tf.transpose(image, perm=(2, 0, 1))
-        return image, labels, bboxes, bbox_img
+        return image, labels, bboxes#, bbox_img
 
 
 def preprocess_image(image,
