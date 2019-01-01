@@ -146,8 +146,6 @@ def generate_losses(cls_preds_layers, loc_preds_layers,
             total_cross = tf.add(
                 total_cross_pos, total_cross_neg, 'cross_entropy')
             total_loc = tf.add_n(l_loc, 'localization')
-        print('total_cross:',total_cross)
-        print('total_loc:',total_loc)
         return total_cross, total_loc
             # Add to EXTRA LOSSES TF.collection
             # tf.add_to_collection('EXTRA_LOSSES', total_cross_pos)

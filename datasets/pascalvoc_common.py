@@ -81,10 +81,10 @@ def _parser_fn(record, split_name, img_shape):
     net = model.get_model()
     arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = net.get_prematched_anchors(img_shape,labels,bboxes)
     output = tf_utils.reshape_list([image, labels, bboxes, arm_anchor_labels, arm_anchor_loc, arm_anchor_scores])
-    print('*'*20)
-    for i,out in enumerate(output):
-        print(i,out.get_shape().as_list())
-    print('*'*20)
+    # print('*'*20)
+    # for i,out in enumerate(output):
+    #     print(i,out.get_shape().as_list())
+    # print('*'*20)
     return output
 
 def get_split(split_name, dataset_dir, batch_size, image_shape, num_epoches, file_pattern,

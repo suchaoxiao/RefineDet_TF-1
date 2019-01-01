@@ -21,6 +21,7 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import numpy as np
 import tensorflow as tf
 slim = tf.contrib.slim
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 from net import model, bboxes
 from tf_extended import utils_func, metrics, tensors
