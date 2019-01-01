@@ -135,6 +135,7 @@ class Refine_det(object):
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block6'] = net  # [8, 8, 64]
             print('block6---',net.get_shape().as_list())
+            tf.Print(net, [net], message='debuuuuuuuuuuuug', summarize=100)
 
             # # block 7
             # net = deconv_unit(input=net, output_chn=64,
