@@ -51,7 +51,7 @@ TRAIN_STATISTICS = {
     'tvmonitor': (256, 324),
     'total': (5011, 12608),
 }
-TEST_STATISTICS = {
+VAL_STATISTICS = {
     'none': (0, 0),
     'aeroplane': (1, 1),
     'bicycle': (1, 1),
@@ -77,11 +77,11 @@ TEST_STATISTICS = {
 }
 SPLITS_TO_SIZES = {
     'train': 5011,
-    'test': 4952,
+    'val': 4952,
 }
 SPLITS_TO_STATISTICS = {
     'train': TRAIN_STATISTICS,
-    'test': TEST_STATISTICS,
+    'val': VAL_STATISTICS,
 }
 NUM_CLASSES = 20
 

@@ -259,7 +259,6 @@ def _tower_fn(is_training, weight_decay, feature, label, data_format):
     '''
     used for training of each gpu
     '''   
-    print('feature:',feature)
     image, bbox, arm_anchor_label, arm_anchor_loc, arm_anchor_scores = feature
     net = model.get_model()  # unused config, getpbb
     end_points = net.model_func(image, is_training=is_training,
