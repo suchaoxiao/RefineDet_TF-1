@@ -306,7 +306,7 @@ def input_fn(data_dir,
         iterator = dataset.make_one_shot_iterator()
         batch_shape = [1,1,1] + [len(model.config['feat_shapes'])]*3
         batch_pack = iterator.get_next()
-        print("batch_pack:", batch_pack)
+        print("batch_pack:", [t.get_shape().as_list() for t in batch_pack])
         if num_shards <= 1:
             image_batch, label_batch, coord_batch, arm_anchor_labels_batch, arm_anchor_loc_batch,\
                 arm_anchor_scores_batch = tf_utils.reshape_list(batch_pack,batch_shape)
