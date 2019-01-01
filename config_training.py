@@ -1,6 +1,6 @@
 configuration = {
     'model_path':'checkpoint',
-    'data_dir':'data/tfrecord/',
+    'data_dir':'data/tfrecords/',
 
     'num_gpus':1,
 

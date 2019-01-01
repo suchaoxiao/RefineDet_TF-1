@@ -30,7 +30,7 @@ from preprocess import preprocessing_factory
 import tf_utils
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-tf.logging.set_verbosity(tf.logging.DEBUG)
+tf.logging.set_verbosity(tf.logging.INFO)
 
 def get_model_fn(num_gpus, variable_strategy, num_workers):
     """Returns a function that will build the resnet model."""

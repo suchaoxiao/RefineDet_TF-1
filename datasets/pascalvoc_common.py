@@ -111,6 +111,8 @@ def get_split(split_name, dataset_dir, batch_size, image_shape, num_epoches, fil
     print(file_pattern, split_name)
     tf_filenames = glob.glob(file_pattern)
     dataset = tf.data.TFRecordDataset(tf_filenames)
+    if os.path.exists(tf_filenames[0]):
+        raise ValueError('file name %s does not exist.' % tf_filenames[0])
     parser_fn = functools.partial(_parser_fn,
                         split_name=split_name, img_shape=image_shape)
     dataset = dataset.map(parser_fn)
