@@ -48,7 +48,7 @@ def cummax(x, reverse=False, name=None):
         if reverse:
             cmax = tf.reverse(cmax, axis=[0])
         return cmax
-
+#作者自己定义的conv2d 默认是padding=same的，初始化用的是截断函数
 def conv2d(input, output_chn, kernel_size, stride=1, use_bias=True, name='conv'):
     return tf.layers.conv2d(inputs=input, filters=output_chn, kernel_size=kernel_size, strides=stride,
                             padding="same", data_format='channels_last',
@@ -80,7 +80,7 @@ def deconv3d(input, output_chn, use_bias=True, kernel_size=2, name='deconv'):
                                           0.0, 0.01),
                                       kernel_regularizer=slim.l2_regularizer(0.0005), use_bias=use_bias, name=name)
     return conv
-
+#定义卷积单元包括nn+bn+relu
 def conv_unit(input, output_chn, kernel_size, stride, bn_epsilon=1e-3, is_training=True, name=None):
     with tf.variable_scope(name):
         conv = conv2d(input, output_chn, kernel_size, stride)
@@ -116,13 +116,13 @@ def deconv3d_unit(input, output_chn, bn_epsilon, is_training, name):
                                            training=is_training, name="batch_norm")
         relu = tf.nn.relu(bn, name='relu')
     return relu
-
+# 定义residual block  输出是shortcut+卷积网络后再relu一下
 def res_unit(inputI, n_in, n_out, bn_epsilon=1e-3, stride=1, is_training=True, name='residule_unit'):
     '''
     2D resnet module for the model
     '''
     with tf.variable_scope(name):
-        if stride != 1 or n_out != n_in:
+        if stride != 1 or n_out != n_in:  #如果stride不是或者输入和输出的chanel不匹配，在shortcut上添加卷积
             shortcut1 = conv2d(input=inputI, output_chn=n_out,
                                kernel_size=1, stride=stride, name="conv_shortcut")
             shortcut = tf.layers.batch_normalization(shortcut1, epsilon=bn_epsilon,
@@ -133,6 +133,7 @@ def res_unit(inputI, n_in, n_out, bn_epsilon=1e-3, stride=1, is_training=True, n
         residual = shortcut
         out = conv_unit(input=inputI, output_chn=n_out, kernel_size=3,
                            stride=1, is_training=is_training, name="pr_cbr_out")
+        #这里的conv2 是作者定义的，默认padding=same，当stride>时，输出图片大小时输入图片的一半,stride=1时不变
         out = conv2d(input=out, output_chn=n_out,
                      kernel_size=3, stride=stride, name="pr_conv_out")
         out = tf.layers.batch_normalization(out, epsilon=bn_epsilon,

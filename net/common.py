@@ -85,12 +85,12 @@ def construct_refinedet(from_layers):
     return out_layers[::-1]
 
 # ==============================================================================================================
-
+#定义从ssd的一个层回去anchor 的方法  #ssd计算anchor 的方法
 def ssd_anchor_one_layer(img_shape,
-                         feat_shape,
-                         sizes,
-                         ratios,
-                         step,
+                         feat_shape, #featuremap size
+                         sizes, #anchor size
+                         ratios, #anchor ratio
+                         step,  #anchor stride
                          offset=0.5,
                          dtype=np.float32):
     """Computer SSD default anchor boxes for one feature layer.
@@ -99,12 +99,12 @@ def ssd_anchor_one_layer(img_shape,
     width and height.
 
     Arguments:
-      feat_shape: Feature shape, used for computing relative position grids;
-      size: Absolute reference sizes;
+      feat_shape: Feature shape, used for computing relative position grids; 特征大小用来计算为自豪网格
+      size: Absolute reference sizes; #
       ratios: Ratios to use on these features;
       img_shape: Image shape, used for computing height, width relatively to the
         former;
-      offset: Grid offset.
+      offset: Grid offset. 相对坐标
 
     Return:
       y, x, h, w: Relative x and y grids, and height and width.
@@ -116,8 +116,8 @@ def ssd_anchor_one_layer(img_shape,
     # y = (y.astype(dtype) + offset) / feat_shape[0]
     # x = (x.astype(dtype) + offset) / feat_shape[1]
     # Weird SSD-Caffe computation using steps values...
-    y, x = np.mgrid[0:feat_shape[0], 0:feat_shape[1]]
-    y = (y.astype(dtype) + offset) * step / img_shape[0]
+    y, x = np.mgrid[0:feat_shape[0], 0:feat_shape[1]]  #图像宽高，建立矩阵
+    y = (y.astype(dtype) + offset) * step / img_shape[0] #
     x = (x.astype(dtype) + offset) * step / img_shape[1]
 
     # Expand dims to support easy broadcasting.
@@ -126,7 +126,7 @@ def ssd_anchor_one_layer(img_shape,
 
     # Compute relative height and width.
     # Tries to follow the original implementation of SSD for the order.
-    num_anchors = len(sizes) + len(ratios)
+    num_anchors = len(sizes) + len(ratios)  #anchor 数量时ratio和size的和
     h = np.zeros((num_anchors, ), dtype=dtype)
     w = np.zeros((num_anchors, ), dtype=dtype)
     # Add first anchor boxes with ratio=1.
@@ -140,8 +140,8 @@ def ssd_anchor_one_layer(img_shape,
     for i, r in enumerate(ratios):
         h[i+di] = sizes[0] / img_shape[0] / math.sqrt(r)
         w[i+di] = sizes[0] / img_shape[1] * math.sqrt(r)
-    return x, y, w, h
-
+    return x, y, w, h    #返回中心点和宽高坐标
+#定义获取anchor 的方法，为所有的特征图featuremap计算anchorbox
 def ssd_anchors_all_layers(img_shape,
                            layers_shape,
                            anchor_sizes,
@@ -153,6 +153,7 @@ def ssd_anchors_all_layers(img_shape,
     """
     layers_anchors = []
     for i, s in enumerate(layers_shape):
+        #分别计算ssd中每一层的anchorbbox，然后append成list返回
         anchor_bboxes = ssd_anchor_one_layer(img_shape, s,
                                              anchor_sizes[i],
                                              anchor_ratios[i],
@@ -371,6 +372,7 @@ def concat_preds(loc_preds_layers, cls_preds_layers, mode):
     # cls_preds = tf.transpose(cls_preds, perm=(0, 2, 1),)
     return loc_preds, cls_preds
 # ================================================================================
+#对label和bbox进行编码
 def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, scope=None):
         """Encode labels and bounding boxes.
         """
@@ -385,7 +387,7 @@ def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, sco
             anchor_scaling=anchor_scaling,
             ignore_threshold=0.5,
             scope=scope)
-
+#从网络的一层中用ssd ancchors对gtlabel个bbox编码
 def arm_anchor_match_layer(gtlabels, gtboxes,
                                anchors_layer,
                                num_classes,
@@ -417,7 +419,7 @@ def arm_anchor_match_layer(gtlabels, gtboxes,
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
     xmax = xref + wref / 2.
-    vol_anchors = (xmax - xmin) * (ymax - ymin)
+    vol_anchors = (xmax - xmin) * (ymax - ymin)   #计算anchor面积
 
     # Initialize tensors...
     shape = (yref.shape[0], yref.shape[1], href.size)
@@ -428,7 +430,7 @@ def arm_anchor_match_layer(gtlabels, gtboxes,
     feat_xmin = tf.zeros(shape, dtype=dtype)
     feat_ymax = tf.ones(shape, dtype=dtype)
     feat_xmax = tf.ones(shape, dtype=dtype)
-
+#计算gtbox和anchor的iou交并比
     def jaccard_with_anchors(bbox): # IOU
         """Compute jaccard score between a box and the anchors.
         """
@@ -676,7 +678,7 @@ def odm_anchor_match_layer(gtlabels, gtboxes,
     # Use SSD ordering: x / y / w / h instead of ours.
     feat_localizations = tf.stack([feat_cx, feat_cy, feat_w, feat_h], axis=-1)
     return feat_labels, feat_localizations, feat_scores
-
+#定义ssd网络anchor match函数，用ssdnetanchor对gtlablel和bbox进行编码
 def ssd_anchor_match(labels,
                          bboxes,
                          anchors,

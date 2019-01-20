@@ -59,7 +59,7 @@ config['blacklist'] = ['868b024d9fa388b7ddab12ec1c06af38',
 # import logging
 # logging.basicConfig(filename='LOG/'+__name__+'.log',format='[%(asctime)s-%(filename)s-%(levelname)s:%(message)s]', 
 #                 level=print,filemode='a',datefmt='%Y-%m-%d %I:%M:%S %p')
-
+# 定义refindet网络模型
 class Refine_det(object):
     def __init__(self, num_classes):
         self.config = config
@@ -77,12 +77,12 @@ class Refine_det(object):
         self.reuse = None
         self.config['num_classes'] = num_classes
         self.config['no_annotation_label'] = 21
-
+    ##定义网络功能
     def model_func(self, image, is_training, input_data_format='channels_last'):
 
         end_points = {}
         with tf.variable_scope(self.scope, 'ssd_160_resnet', [image], reuse=self.reuse):
-            # block 1
+            # block 1  convunit 是cnn+bn+relu  默认padding=valid
             net = conv_unit(input=image, output_chn=24, kernel_size=3, stride=1,
                             is_training=is_training, name='convpre_1')
             end_points['block1'] = net  # [512,512,24]
@@ -94,11 +94,12 @@ class Refine_det(object):
             end_points['block2'] = net  # [512,512, 24]
             print('block2---',net.get_shape().as_list())
 
-            # block 3
+            # block 3  resnet网络的输出尺寸没有变化，就是shortct+cnn
             net = res_unit(net, 24, 32, stride=1, is_training=is_training, name="top_down_1_0")
             end_points['block3_1'] = net
             net = res_unit(net, 32, 32, stride=1, is_training=is_training, name="top_down_1_1")
             end_points['block3_2'] = net
+            #最大池化 poolsize=2 尺寸减半
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block3'] = net  # [256,256, 32]
@@ -116,10 +117,12 @@ class Refine_det(object):
 
             # block 5
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_3_0")
+            #下面的stride=2将图片缩小一半，[64,64,64]
             net = res_unit(net, 64, 64, stride=2, is_training=is_training, name="top_down_3_1")
             end_points['block5_1'] = net
             net = res_unit(net, 64, 64, stride=1, is_training=is_training, name="top_down_3_2")
             end_points['block5_2'] = net
+            #maxpool  又缩小一半[32,32,64]
             net = tf.layers.max_pooling2d(
                 net, pool_size=self.POOL_KERNEL_SIZE, strides=self.POOL_STRIDE_SIZE)
             end_points['block5'] = net  # [32,32, 64]
@@ -147,47 +150,52 @@ class Refine_det(object):
         #     [.75, .8216], [.9, .9721]]
         # ratios = [[1,2,.5], [1,2,.5,3,1./3], [1,2,.5,3,1./3], [1,2,.5,3,1./3], \
         #     [1,2,.5,3,1./3], [1,2,.5], [1,2,.5]]
-        return end_points
-    
+        return end_points   #最后返回网络输出  modelfun函数的返回
+    #定义获取提前匹配的anchor label 坐标还有logit得分
     def get_prematched_anchors(self, image_shape, gtlabels, gtboxes):
+        #调用了ssd中产生anchor 的方法
         anchor_boxes = common.ssd_anchors_all_layers(image_shape,config['feat_shapes'],
                            config['anchor_sizes'], config['anchor_ratios'],
                            config['arm_anchor_steps'], offset=0.5, dtype=np.float32)
+        #调用anchormatch函数计算anchor和gtbox匹配情况（类似rpn网络）
         arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
                                                     anchor_boxes, self.config, anchor_for='arm')
         return arm_anchor_labels, arm_anchor_loc, arm_anchor_scores
-
+    #定义前传函数
     def forward(self, end_points, ground_truths, targets):
+        #获取gtlabel和gtbox
         gtboxes, gtlabels = ground_truths
+        #获取arm网络输出的anchor类别（fg/bg） anchor坐标和anchor logits得分
         arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = targets
         self.from_layers = []
         for name in self.ARM_LAYERS:
             self.from_layers.append(end_points[name])
         # get output of ARM and ODM
+        #调用multiboxlayer函数，
         arm_loc_layers, arm_cls_layers, odm_loc_layers, odm_cls_layers = multibox_layer(
             config, self.from_layers, num_classes=self.num_classes, clip=False)
         # arm_loc, arm_cls = common.concat_preds(arm_loc_layers, arm_cls_layers, 'arm')
         # odm_loc, odm_cls = common.concat_preds(odm_loc_layers, odm_cls_layers, 'odm')
-
+        #获取anchor
         anchor_boxes = common.get_anchors(config, self.from_layers)
         # arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
         #                                             anchor_boxes, self.config, anchor_for='arm')
+
+        #对anchor box进行修正
         refined_anchors = common.refine_anchor(anchor_boxes, arm_loc_layers)
         end_points['refined_anchors'] = refined_anchors
-        
+        #对arm网络输出和gtbox信息送到odm网络进行匹配
         odm_anchor_labels, odm_anchor_loc, odm_anchor_scores = \
                         common.anchor_match(gtlabels, gtboxes, refined_anchors, self.config, anchor_for='odm')
         #####
         odm_scores = tf.Print(odm_anchor_scores[0],[odm_anchor_scores[0]],message='odm_scores',summarize=100)
         #####
-        # make losses
+        # make losses   获取loss=armloss+odm loss
         arm_cls_loss, arm_loc_loss = losses.arm_losses(arm_cls_layers,arm_loc_layers,arm_anchor_labels, arm_anchor_loc, arm_anchor_scores)
         odm_cls_loss, odm_loc_loss = losses.odm_losses(odm_cls_layers,odm_loc_layers,odm_anchor_labels, odm_anchor_loc, odm_anchor_scores)
         end_points['score'] = odm_cls_layers
         end_points['bbox']  = odm_loc_layers
         return tf.add_n([arm_cls_loss, arm_loc_loss, odm_cls_loss, odm_loc_loss]), end_points
-
-    
 
 
 def get_model():
