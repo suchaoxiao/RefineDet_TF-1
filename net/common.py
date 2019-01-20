@@ -117,7 +117,7 @@ def ssd_anchor_one_layer(img_shape,
     # x = (x.astype(dtype) + offset) / feat_shape[1]
     # Weird SSD-Caffe computation using steps values...
     y, x = np.mgrid[0:feat_shape[0], 0:feat_shape[1]]  #图像宽高，建立矩阵
-    y = (y.astype(dtype) + offset) * step / img_shape[0] #
+    y = (y.astype(dtype) + offset) * step / img_shape[0] #计算特征图到图像岛地映射，归一化到0-1
     x = (x.astype(dtype) + offset) * step / img_shape[1]
 
     # Expand dims to support easy broadcasting.
@@ -130,14 +130,14 @@ def ssd_anchor_one_layer(img_shape,
     h = np.zeros((num_anchors, ), dtype=dtype)
     w = np.zeros((num_anchors, ), dtype=dtype)
     # Add first anchor boxes with ratio=1.
-    h[0] = sizes[0] / img_shape[0]
+    h[0] = sizes[0] / img_shape[0]  #添加1：1的default框
     w[0] = sizes[0] / img_shape[1]
     di = 1
-    if len(sizes) > 1:
+    if len(sizes) > 1:  #size=2 #又加一个框
         h[1] = math.sqrt(sizes[0] * sizes[1]) / img_shape[0]
         w[1] = math.sqrt(sizes[0] * sizes[1]) / img_shape[1]
         di += 1
-    for i, r in enumerate(ratios):
+    for i, r in enumerate(ratios):#根据长宽比加anchor
         h[i+di] = sizes[0] / img_shape[0] / math.sqrt(r)
         w[i+di] = sizes[0] / img_shape[1] * math.sqrt(r)
     return x, y, w, h    #返回中心点和宽高坐标
@@ -161,7 +161,7 @@ def ssd_anchors_all_layers(img_shape,
                                              offset=offset, dtype=dtype)
         layers_anchors.append(anchor_bboxes)
     return layers_anchors
-
+#给定image尺寸，计算default box
 def get_anchors(config, from_layers, dtype=np.float32):
     """Compute the default anchor boxes, given an image shape.
     """
@@ -377,7 +377,7 @@ def anchor_match(labels, bboxes, anchors, config, anchor_for, threshold=0.5, sco
         """Encode labels and bounding boxes.
         """
         num_classes = config['num_classes']
-        no_annotation_label = config['no_annotation_label']
+        no_annotation_label = config['no_annotation_label']  #没有注释的标签
         anchor_scaling = config['anchor_scaling']
         return ssd_anchor_match(
             labels, bboxes, anchors,
@@ -430,7 +430,7 @@ def arm_anchor_match_layer(gtlabels, gtboxes,
     feat_xmin = tf.zeros(shape, dtype=dtype)
     feat_ymax = tf.ones(shape, dtype=dtype)
     feat_xmax = tf.ones(shape, dtype=dtype)
-#计算gtbox和anchor的iou交并比
+#计算一个gtbox和anchor的iou交并比
     def jaccard_with_anchors(bbox): # IOU
         """Compute jaccard score between a box and the anchors.
         """
@@ -441,12 +441,12 @@ def arm_anchor_match_layer(gtlabels, gtboxes,
         h = tf.maximum(int_ymax - int_ymin, 0.)
         w = tf.maximum(int_xmax - int_xmin, 0.)
         # Volumes.
-        inter_vol = h * w
+        inter_vol = h * w  #交
         union_vol = vol_anchors - inter_vol \
-            + (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
-        jaccard = tf.div(inter_vol, union_vol)
+            + (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])  #并
+        jaccard = tf.div(inter_vol, union_vol) #iou
         return jaccard
-
+    #计算一个gtbox和anchor 的面积交/anchor面积
     def intersection_with_anchors(bbox):
         """Compute intersection between score a box and the anchors.
         """
@@ -472,7 +472,7 @@ def arm_anchor_match_layer(gtlabels, gtboxes,
         """
         loop body, iterate each ground truth box and label, 
                     and match anchors to it
-                    each GT box has at least one anchors, 
+                    each GT box has at least one anchors,一个btbox至少有一个anxhor，一个anchor'只能有一个gtbox
                     and each anchor matches only one GT box
         Body: update feature labels, scores and bboxes.
         Follow the original SSD paper for that purpose:
@@ -484,14 +484,15 @@ def arm_anchor_match_layer(gtlabels, gtboxes,
         jaccard = jaccard_with_anchors(bbox) # IOU
         ### Mask: check threshold + scores + no annotations + num_classes.
         ## check if the IOU is larger than former IOU of another GT box
-        mask = tf.greater(jaccard, feat_scores)
+        mask = tf.greater(jaccard, feat_scores)  #featurescore 初始化为0，一个gtbox何以又多个anxhor对应，
+        # 所以要选iou大的
         # mask = tf.logical_and(mask, tf.greater(jaccard, matching_threshold))
         mask = tf.logical_and(mask, feat_scores > -0.5) # ???
         mask = tf.logical_and(mask, label < num_classes) # ???
         fmask = tf.cast(mask, dtype)
         # Update values using mask.
-        feat_labels = fmask * label + (1 - fmask) * feat_labels
-        feat_scores = tf.where(mask, jaccard, feat_scores)
+        feat_labels = fmask * label + (1 - fmask) * feat_labels  #根据mask给anchor打标签
+        feat_scores = tf.where(mask, jaccard, feat_scores)  #
 
         feat_ymin = fmask * bbox[0] + (1 - fmask) * feat_ymin
         feat_xmin = fmask * bbox[1] + (1 - fmask) * feat_xmin
@@ -529,7 +530,7 @@ def arm_anchor_match_layer(gtlabels, gtboxes,
     # Use SSD ordering: x / y / w / h instead of ours.
     feat_localizations = tf.stack([feat_cx, feat_cy, feat_w, feat_h], axis=-1) # [feat_w, feat_h, num_anchors, num_coords(4)]
     return feat_labels, feat_localizations, feat_scores
-
+#定义目标检测模块匹配
 def odm_anchor_match_layer(gtlabels, gtboxes,
                             anchors_layer,
                             num_classes,
@@ -593,7 +594,7 @@ def odm_anchor_match_layer(gtlabels, gtboxes,
             + (bbox[:,:,:,2] - bbox[:,:,:,0]) * (bbox[:,:,:,3] - bbox[:,:,:,1])
         jaccard = tf.div(inter_vol, union_vol)
         return jaccard # ((batch), feat_w, feat_h, anchor_num)
-
+    # 定义一个gtbox和所有anchor的交
     def intersection_with_anchors(bbox):
         """Compute intersection score between a gbox and the anchors.
         """
@@ -722,7 +723,7 @@ def ssd_anchor_match(labels,
         return target_labels, target_localizations, target_scores
 
 #===================================================================================
-
+#定义修正anchor的函数
 def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.2,0.2]):
     '''
     input:
@@ -753,7 +754,7 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     width_preds = arm_loc_preds_bs[2]
     height_preds = arm_loc_preds_bs[3]
 
-    # decode and refine anchors ??
+    # decode and refine anchors 解码，decode
     coord_x = center_x_preds * href * anchor_scaling[0] + xref 
     coord_y = center_y_preds * wref * anchor_scaling[1] + yref
     coord_width = tf.exp(width_preds * anchor_scaling[2]) * wref# / 2.0
@@ -766,7 +767,7 @@ def refine_anchor_layer(anchors_layer, arm_loc_preds, anchor_scaling=[0.1,0.1,0.
     refined_anchor = tf.concat([coord_x, coord_y, coord_width, coord_heigt], axis=-1)
     # print('2.',refined_anchor.get_shape().as_list())
     return refined_anchor
-
+#arm网络对anchornbox进行修正，
 def refine_anchor(anchor_location_all_layers, loc_pred_all_layers):
     refined_anchors = []
     for ii, anchor_location in enumerate(anchor_location_all_layers):

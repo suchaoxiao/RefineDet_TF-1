@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def abs_smooth(x):
+def abs_smooth(x):  #定义l 损失函数
     """Smoothed absolute function. Useful to compute an L1 smooth error.
 
     Define as:
@@ -15,7 +15,7 @@ def abs_smooth(x):
     r = 0.5 * ((absx - 1) * minx + absx)
     return r
 
-
+#定义SSD网络 arm的loss
 def arm_losses(cls_preds_layers, loc_preds_layers,
            anchor_labels, anchor_locs, anchor_scores,
            match_threshold=0.5,
@@ -35,7 +35,7 @@ def arm_losses(cls_preds_layers, loc_preds_layers,
                       alpha=alpha,
                       label_smoothing=label_smoothing,
                       scope=scope)
-
+#定义odm的loss
 def odm_losses(cls_preds_layers, loc_preds_layers,
            anchor_labels, anchor_locs, anchor_scores,
            match_threshold=0.5,
@@ -52,7 +52,7 @@ def odm_losses(cls_preds_layers, loc_preds_layers,
                       alpha=alpha,
                       label_smoothing=label_smoothing,
                       scope=scope)
-
+#定义arm网络loss，训练ssd网络的loss
 def generate_losses(cls_preds_layers, loc_preds_layers,
                anchor_labels, anchor_locs, anchor_scores,
                match_threshold=0.5,

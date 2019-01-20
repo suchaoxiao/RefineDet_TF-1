@@ -14,7 +14,7 @@ import net.negative_filtering as neg_filter
 config = {}
 config['image_shape'] = [512,512]
 config['feat_shapes'] = [(512,512),(256,256),(128,128),(64,64),(32,32),(16,16),(8,8)]
-config['anchor_sizes'] = [(20.48, 51.2),
+config['anchor_sizes'] = [(20.48, 51.2),  #前面的是小的正方形defaultbox或者prior box，后面是大的
                       (51.2, 133.12),
                       (133.12, 215.04),
                       (215.04, 296.96),
@@ -77,9 +77,9 @@ class Refine_det(object):
         self.reuse = None
         self.config['num_classes'] = num_classes
         self.config['no_annotation_label'] = 21
-    ##定义网络功能
+    #定义网络功能
     def model_func(self, image, is_training, input_data_format='channels_last'):
-
+        #endpoint用来存储临时状态
         end_points = {}
         with tf.variable_scope(self.scope, 'ssd_160_resnet', [image], reuse=self.reuse):
             # block 1  convunit 是cnn+bn+relu  默认padding=valid
@@ -94,7 +94,7 @@ class Refine_det(object):
             end_points['block2'] = net  # [512,512, 24]
             print('block2---',net.get_shape().as_list())
 
-            # block 3  resnet网络的输出尺寸没有变化，就是shortct+cnn
+            # block 3  resnet网络的输出尺寸没有变化，就是shortcut+cnn
             net = res_unit(net, 24, 32, stride=1, is_training=is_training, name="top_down_1_0")
             end_points['block3_1'] = net
             net = res_unit(net, 32, 32, stride=1, is_training=is_training, name="top_down_1_1")
@@ -151,14 +151,14 @@ class Refine_det(object):
         # ratios = [[1,2,.5], [1,2,.5,3,1./3], [1,2,.5,3,1./3], [1,2,.5,3,1./3], \
         #     [1,2,.5,3,1./3], [1,2,.5], [1,2,.5]]
         return end_points   #最后返回网络输出  modelfun函数的返回
-    #定义获取提前匹配的anchor label 坐标还有logit得分
+    #定义获取提前匹配的anchor label 坐标还有logit得分  label就是21个类别标签，score就是框的iou值
     def get_prematched_anchors(self, image_shape, gtlabels, gtboxes):
         #调用了ssd中产生anchor 的方法
         anchor_boxes = common.ssd_anchors_all_layers(image_shape,config['feat_shapes'],
                            config['anchor_sizes'], config['anchor_ratios'],
                            config['arm_anchor_steps'], offset=0.5, dtype=np.float32)
         #调用anchormatch函数计算anchor和gtbox匹配情况（类似rpn网络）
-        arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes, 
+        arm_anchor_labels, arm_anchor_loc, arm_anchor_scores = common.anchor_match(gtlabels, gtboxes,
                                                     anchor_boxes, self.config, anchor_for='arm')
         return arm_anchor_labels, arm_anchor_loc, arm_anchor_scores
     #定义前传函数
@@ -190,7 +190,7 @@ class Refine_det(object):
         #####
         odm_scores = tf.Print(odm_anchor_scores[0],[odm_anchor_scores[0]],message='odm_scores',summarize=100)
         #####
-        # make losses   获取loss=armloss+odm loss
+        # make losses   获取loss=arm loss+odm loss
         arm_cls_loss, arm_loc_loss = losses.arm_losses(arm_cls_layers,arm_loc_layers,arm_anchor_labels, arm_anchor_loc, arm_anchor_scores)
         odm_cls_loss, odm_loc_loss = losses.odm_losses(odm_cls_layers,odm_loc_layers,odm_anchor_labels, odm_anchor_loc, odm_anchor_scores)
         end_points['score'] = odm_cls_layers
