@@ -31,7 +31,7 @@ import tf_utils
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 tf.logging.set_verbosity(tf.logging.INFO)
-
+#定义获取resnet网络模型的方法
 def get_model_fn(num_gpus, variable_strategy, num_workers):
     """Returns a function that will build the resnet model."""
 
@@ -257,13 +257,13 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
 
     return _patech_model_fn
 
-
+#
 def _tower_fn(is_training, weight_decay, feature, label, data_format):
     '''
     used for training of each gpu
     '''   
     image, bbox, arm_anchor_label, arm_anchor_loc, arm_anchor_scores = feature
-    net = model.get_model()  # unused config, getpbb
+    net = model.get_model()  # unused config, getpbb 获取model网络
     end_points = net.model_func(image, is_training=is_training,
                             input_data_format='channels_last')
     tower_loss, end_points = net.forward(end_points, [bbox,label],[arm_anchor_label, arm_anchor_loc, arm_anchor_scores])
